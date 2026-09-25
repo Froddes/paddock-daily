@@ -86,7 +86,7 @@ const searchItems = [
       .map(
         (item) => `
         <article class="search-result">
-          <div class="thumb"><svg viewBox="0 0 300 190"><rect width="300" height="190" fill="#101010"/><path d="M0 40 L300 10" stroke="#3a3a3a" stroke-width="1.5"/></svg></div>
+          <a class="thumb" href="${item.href}" aria-label="${item.title}"><svg viewBox="0 0 300 190"><rect width="300" height="190" fill="#101010"/><path d="M0 40 L300 10" stroke="#3a3a3a" stroke-width="1.5"/></svg></a>
           <div>
             <span class="eyebrow-cat">${item.category.toUpperCase()}</span>
             <h3><a href="${item.href}">${item.title}</a></h3>
