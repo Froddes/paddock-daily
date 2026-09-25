@@ -105,7 +105,7 @@ Cada carpeta tiene su propio README con más detalle.
 - [x] **Fase 0-1** — Maquetación HTML/CSS/JS
 - [x] **Fase 2** — Migración a Astro + Directus, contenido real
 - [x] **Fase 3** — Pulido de UI/UX, RaceCenter en vivo
-- [ ] **Fase 4** — Pagefind, automatización de publicación (n8n → rebuild), newsletter real, SEO técnico (sitemap, JSON-LD)
+- [ ] **Fase 4** — Migrar Directus a la Raspberry Pi (producción), Pagefind, automatización de publicación (n8n → rebuild), newsletter real, SEO técnico (sitemap, JSON-LD)
 - [ ] **Fase 5** — Fotografía editorial, anuncios (una vez haya tráfico)
 
 ---
