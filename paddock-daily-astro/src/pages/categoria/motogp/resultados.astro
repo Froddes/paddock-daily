@@ -1,0 +1,57 @@
+---
+// Resultados y clasificación de MotoGP — vía la API no oficial de
+// motogp.com (ver src/lib/motogp-api.js). Alcance más limitado que F1:
+// esa API no da resultados de carrera con detalle de forma fiable, así
+// que aquí solo hay clasificación de pilotos y calendario de la temporada.
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Resultados MotoGP"
+  description="Clasificación de pilotos y calendario de la temporada actual, en vivo."
+  headerVariant="simple"
+  footerVariant="simple"
+>
+  <div class="article-wrap" data-racecenter-results data-tabs-scope>
+    <div class="breadcrumb">
+      <a href="/">Inicio</a> / <a href="/categoria/motogp">MotoGP</a> / Resultados
+    </div>
+
+    <section class="article-head">
+      <span class="eyebrow-cat">MOTOGP · RESULTADOS</span>
+      <h1>Clasificación y calendario</h1>
+      <p class="dek">Datos en vivo de la temporada actual, vía la API pública (no oficial) de MotoGP.</p>
+    </section>
+
+    <div class="filter-tabs results-page-tabs" data-tabs>
+      <button class="active" data-tab="drivers">Pilotos</button>
+      <button data-tab="calendar">Calendario</button>
+    </div>
+
+    <section class="results-block" data-panel="drivers">
+      <h2>Clasificación de pilotos</h2>
+      <div class="results-tablewrap">
+        <table class="results-table">
+          <thead>
+            <tr><th>Pos</th><th>Piloto</th><th>Constructor</th><th>Puntos</th></tr>
+          </thead>
+          <tbody data-rc-drivers-body>
+            <tr><td colspan="4" class="rc-status">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="results-block" data-panel="calendar" hidden>
+      <h2>Calendario de la temporada</h2>
+      <ul class="calendar-list" data-rc-calendar>
+        <li class="rc-status">Cargando…</li>
+      </ul>
+    </section>
+  </div>
+</Layout>
+
+<script>
+  import { initRaceCenterResultsPage } from '../../../lib/motogp-api.js';
+  initRaceCenterResultsPage(document.querySelector('[data-racecenter-results]'));
+</script>

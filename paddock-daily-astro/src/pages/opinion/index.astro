@@ -1,0 +1,34 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import OpinionCard from '../../components/OpinionCard.astro';
+import { getOpinionColumns } from '../../lib/directus.js';
+
+const columns = await getOpinionColumns({ limit: 20 });
+const [featured, ...rest] = columns;
+---
+
+<Layout title="Opinión" theme="dark" headerVariant="full" footerVariant="simple" currentNav="opinion">
+  <section class="cat-hero">
+    <div class="wrap">
+      <div class="cat-hero-top">
+        <span class="checker-accent"><span></span><span></span><span></span><span></span></span>
+        <span class="eyebrow-cat">OPINIÓN</span>
+      </div>
+      <h1>Opinión</h1>
+      <p>Análisis, columnas y lecturas de fondo sobre lo que sucede en el paddock, firmadas por nuestro equipo editorial.</p>
+    </div>
+  </section>
+
+  <section class="cat-body">
+    <div class="wrap">
+      {columns.length === 0 ? (
+        <p class="meta">Todavía no hay columnas de opinión publicadas.</p>
+      ) : (
+        <div class="opinion-grid">
+          {featured && <OpinionCard column={featured} featured />}
+          {rest.map((column) => <OpinionCard column={column} />)}
+        </div>
+      )}
+    </div>
+  </section>
+</Layout>

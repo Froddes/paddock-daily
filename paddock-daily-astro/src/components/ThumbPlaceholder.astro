@@ -1,0 +1,36 @@
+---
+// Gráfico de referencia en ausencia de fotografía editorial real (fase 5
+// del roadmap la sustituye). Elegimos una de 4 variantes de forma
+// determinista a partir del slug, para que cada tarjeta no se vea
+// idéntica pero el mismo artículo siempre muestre el mismo patrón.
+const { seed = '', size = 'md' } = Astro.props;
+
+let hash = 0;
+for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+const variant = hash % 4;
+
+const viewBox = size === 'sm' ? '0 0 90 64' : '0 0 300 190';
+const [w, h] = size === 'sm' ? [90, 64] : [300, 190];
+---
+
+<svg viewBox={viewBox} preserveAspectRatio="xMidYMid slice">
+  <rect width={w} height={h} fill="#101010" />
+  {variant === 0 && (
+    <path d={`M-20 ${h * 0.78} C ${w * 0.3} ${h * 0.5}, ${w * 0.45} ${h * 1}, ${w * 0.68} ${h * 0.7} S ${w * 1.05} ${h * 0.45}, ${w * 1.1} ${h * 0.6}`} stroke="#FF5A1F" stroke-width="2" fill="none" opacity="0.75" />
+  )}
+  {variant === 1 && (
+    <circle cx={w * 0.2} cy={h * 0.8} r={h * 0.5} fill="none" stroke="#3a3a3a" stroke-width="1.5" />
+  )}
+  {variant === 2 && (
+    <>
+      <path d={`M0 ${h * 0.2} L${w} ${h * 0.08}`} stroke="#2c2c2c" stroke-width="1" />
+      <path d={`M0 ${h * 0.45} L${w} ${h * 0.3}`} stroke="#2c2c2c" stroke-width="1" />
+    </>
+  )}
+  {variant === 3 && (
+    <g fill="#2c2c2c">
+      <rect x={w * 0.1} y={h * 0.72} width={h * 0.08} height={h * 0.08} />
+      <rect x={w * 0.14} y={h * 0.65} width={h * 0.08} height={h * 0.08} />
+    </g>
+  )}
+</svg>

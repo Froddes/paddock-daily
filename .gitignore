@@ -1,0 +1,38 @@
+# Dependencias
+node_modules/
+package-lock.json.bak
+
+# Builds
+dist/
+.astro/
+.output/
+.vercel/
+.netlify/
+
+# Variables de entorno y secretos — nunca subir credenciales reales
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Editor / SO
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Directus — datos locales de Postgres si se llegan a montar como bind mount
+# en vez de volumen nombrado (no aplica al docker-compose.yml actual, pero
+# por si se cambia en el futuro)
+pgdata/
+uploads/
+
+# Cache varios
+.cache/
+.turbo/

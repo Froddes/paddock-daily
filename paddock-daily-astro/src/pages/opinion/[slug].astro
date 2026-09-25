@@ -1,0 +1,60 @@
+---
+import { marked } from 'marked';
+import Layout from '../../layouts/Layout.astro';
+import { getOpinionColumns, getOpinionColumnBySlug, formatDate } from '../../lib/directus.js';
+
+export async function getStaticPaths() {
+  const columns = await getOpinionColumns({ limit: 1000 });
+  return columns.map((column) => ({
+    params: { slug: column.slug },
+    props: { column },
+  }));
+}
+
+const { column } = Astro.props;
+const bodyHtml = marked.parse(column.body || '');
+const more = await getOpinionColumns({ excludeSlug: column.slug, limit: 3 });
+const initial = column.author?.name?.charAt(0) || 'P';
+---
+
+<Layout title={column.title} description={column.dek} theme="dark" headerVariant="simple" footerVariant="simple">
+  <div class="col-wrap">
+    <section class="col-head">
+      <span class="eyebrow-cat">OPINIÓN{column.category ? ` · ${column.category.name.toUpperCase()}` : ''}</span>
+      <h1>{column.title}</h1>
+      <p class="col-dek">{column.dek}</p>
+      <div class="author-card">
+        <span class="avatar">{initial}</span>
+        <div><strong>{column.author?.name}</strong><span>{column.author?.role} · {formatDate(column.published_date)}</span></div>
+      </div>
+    </section>
+
+    <article class="col-body" set:html={bodyHtml} />
+
+    {column.author?.bio && (
+      <div class="author-box">
+        <span class="avatar">{initial}</span>
+        <div>
+          <h4>Sobre el autor</h4>
+          <p>{column.author.bio}</p>
+        </div>
+      </div>
+    )}
+  </div>
+
+  {more.length > 0 && (
+    <section class="more-opinion">
+      <div class="col-wrap">
+        <h2>Más de Opinión</h2>
+        <ul class="more-list">
+          {more.map((c) => (
+            <li>
+              <h5><a href={`/opinion/${c.slug}`}>{c.title}</a></h5>
+              <span class="meta">{c.author?.name}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+</Layout>

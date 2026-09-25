@@ -1,0 +1,43 @@
+---
+import { getCategories } from '../lib/directus.js';
+
+const { variant = 'simple' } = Astro.props;
+const categories = variant === 'full' ? (await getCategories()).slice(0, 4) : [];
+const year = new Date().getFullYear();
+---
+
+{variant === 'full' ? (
+  <footer class="footer-full">
+    <div class="wrap">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <span class="brand-name"><b>PADDOCK</b> <em>DAILY</em></span>
+          <p>Una pasión. Todas las categorías. Todo el paddock. El punto de encuentro para seguir la actualidad del motorsport.</p>
+        </div>
+        <div class="footer-col">
+          <h5>CATEGORÍAS</h5>
+          {categories.map((cat) => <a href={`/categoria/${cat.slug}`}>{cat.name}</a>)}
+        </div>
+        <div class="footer-col">
+          <h5>PADDOCK DAILY</h5>
+          <a href="/sobre-nosotros">Sobre nosotros</a>
+          <a href="/opinion">Opinión</a>
+          <a href="/sobre-nosotros#contacto">Contacto</a>
+        </div>
+        <div class="footer-col">
+          <h5>SÍGUENOS</h5>
+          <a href="https://instagram.com/paddockdaily" target="_blank" rel="noopener">Instagram</a>
+          <a href="#" target="_blank" rel="noopener">TikTok</a>
+          <a href="#" target="_blank" rel="noopener">X / Twitter</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© {year} Paddock Daily</span>
+      </div>
+    </div>
+  </footer>
+) : (
+  <footer class="footer-simple">
+    <div class="wrap">Paddock Daily — <span>© {year}</span></div>
+  </footer>
+)}

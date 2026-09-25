@@ -1,0 +1,103 @@
+---
+// Resultados y clasificación completos de F1 — 100% en vivo vía la API
+// Jolpica-F1 (ver src/lib/f1-api.js). Página estática de contenedores
+// vacíos organizados en pestañas; los datos se piden y pintan en el
+// navegador del visitante.
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Resultados F1"
+  description="Última carrera, clasificación, pilotos, constructores y calendario de la temporada actual, en vivo."
+  headerVariant="simple"
+  footerVariant="simple"
+>
+  <div class="article-wrap" data-racecenter-results data-tabs-scope>
+    <div class="breadcrumb">
+      <a href="/">Inicio</a> / <a href="/categoria/f1">Fórmula 1</a> / Resultados
+    </div>
+
+    <section class="article-head">
+      <span class="eyebrow-cat">FÓRMULA 1 · RESULTADOS</span>
+      <h1>Clasificación y resultados</h1>
+      <p class="dek">Datos en vivo de la temporada actual, vía la API pública de F1.</p>
+    </section>
+
+    <div class="filter-tabs results-page-tabs" data-tabs>
+      <button class="active" data-tab="race">Última carrera</button>
+      <button data-tab="quali">Clasificación</button>
+      <button data-tab="drivers">Pilotos</button>
+      <button data-tab="constructors">Constructores</button>
+      <button data-tab="calendar">Calendario</button>
+    </div>
+
+    <section class="results-block" data-panel="race">
+      <h2 data-rc-lastrace-name>Cargando última carrera…</h2>
+      <p class="fastest-lap-badge" data-rc-fastest-lap hidden></p>
+      <div class="results-tablewrap">
+        <table class="results-table">
+          <thead>
+            <tr><th>Pos</th><th>Piloto</th><th>Salida</th><th>Resultado</th><th>Puntos</th></tr>
+          </thead>
+          <tbody data-rc-lastrace-body>
+            <tr><td colspan="5" class="rc-status">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="results-block" data-panel="quali" hidden>
+      <h2 data-rc-quali-name>Cargando clasificación…</h2>
+      <div class="results-tablewrap">
+        <table class="results-table">
+          <thead>
+            <tr><th>Pos</th><th>Piloto</th><th>Q1</th><th>Q2</th><th>Q3</th></tr>
+          </thead>
+          <tbody data-rc-quali-body>
+            <tr><td colspan="5" class="rc-status">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="results-block" data-panel="drivers" hidden>
+      <h2>Clasificación de pilotos</h2>
+      <div class="results-tablewrap">
+        <table class="results-table">
+          <thead>
+            <tr><th>Pos</th><th>Piloto</th><th>Victorias</th><th>Puntos</th></tr>
+          </thead>
+          <tbody data-rc-drivers-body>
+            <tr><td colspan="4" class="rc-status">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="results-block" data-panel="constructors" hidden>
+      <h2>Clasificación de constructores</h2>
+      <div class="results-tablewrap">
+        <table class="results-table">
+          <thead>
+            <tr><th>Pos</th><th>Equipo</th><th>Victorias</th><th>Puntos</th></tr>
+          </thead>
+          <tbody data-rc-constructors-body>
+            <tr><td colspan="4" class="rc-status">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="results-block" data-panel="calendar" hidden>
+      <h2>Calendario de la temporada</h2>
+      <ul class="calendar-list" data-rc-calendar>
+        <li class="rc-status">Cargando…</li>
+      </ul>
+    </section>
+  </div>
+</Layout>
+
+<script>
+  import { initRaceCenterResultsPage } from '../../../lib/f1-api.js';
+  initRaceCenterResultsPage(document.querySelector('[data-racecenter-results]'));
+</script>

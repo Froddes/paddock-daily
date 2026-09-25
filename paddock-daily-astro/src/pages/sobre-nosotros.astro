@@ -1,0 +1,74 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getAuthors } from '../lib/directus.js';
+
+const authors = await getAuthors();
+
+const PILLARS = [
+  { num: '01', title: 'Minimalista', text: 'Composiciones limpias, sin ruido visual ni exceso de elementos.' },
+  { num: '02', title: 'Dinámica', text: 'Líneas y referencias al movimiento propio de la competición.' },
+  { num: '03', title: 'Editorial', text: 'Jerarquías claras y tratamiento periodístico en cada pieza.' },
+  { num: '04', title: 'Técnica', text: 'Datos, circuitos y detalles inspirados en la ingeniería.' },
+  { num: '05', title: 'Reconocible', text: 'La misma identidad en cada categoría, cada canal y cada pieza.' },
+];
+---
+
+<Layout title="Sobre nosotros" headerVariant="full" footerVariant="simple">
+  <section class="about-hero">
+    <div class="wrap">
+      <span class="eyebrow-cat">SOBRE NOSOTROS</span>
+      <h1>Una pasión. Todas las categorías. Todo el paddock.</h1>
+      <p class="lede">Paddock Daily nace de una idea sencilla: el motorsport es mucho más que una única categoría. Fórmula 1, WEC, MotoGP, GT World Challenge, DTM, IMSA, NASCAR y muchas otras disciplinas forman parte de un mismo universo que merece ser contado — y merece un único lugar donde seguirlo todo.</p>
+    </div>
+  </section>
+
+  <section class="about-section">
+    <div class="wrap">
+      <div class="section-head"><h2>Qué es Paddock Daily</h2></div>
+      <p>No pretendemos parecer un equipo, una escudería ni una competición. Pretendemos ser el lugar donde se informa de todas ellas. Cubrimos clasificaciones, resultados, fichajes y análisis con la misma exigencia editorial, sin dar más peso a una categoría por ser la más mediática.</p>
+      <p>Informar primero, entretener después: esa es nuestra prioridad. Los titulares son claros y van al grano, la información se presenta rápido y sin introducciones innecesarias, y la opinión se firma aparte, separada de la noticia.</p>
+
+      <div class="pillars-grid">
+        {PILLARS.map((p) => (
+          <div class="pillar-card">
+            <span class="num">{p.num}</span>
+            <h4>{p.title}</h4>
+            <p>{p.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="about-section">
+    <div class="wrap">
+      <div class="section-head"><h2>Equipo editorial</h2></div>
+      <div class="team-grid">
+        {authors.map((author) => (
+          <div class="team-card">
+            <span class="avatar">{author.name.charAt(0)}</span>
+            <h4>{author.name}</h4>
+            <span>{author.role}</span>
+            <p>{author.bio}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="about-contact" id="contacto">
+    <div class="wrap">
+      <div class="contact-box">
+        <div>
+          <h2>¿Tienes algo que contarnos?</h2>
+          <p>Filtraciones, correcciones, propuestas de colaboración o simplemente feedback sobre la web — escríbenos.</p>
+        </div>
+        <div class="contact-links">
+          <a href="mailto:redaccion@paddockdaily.com">redaccion@paddockdaily.com <span>Redacción</span></a>
+          <a href="https://instagram.com/paddockdaily" target="_blank" rel="noopener">Instagram <span>@paddockdaily</span></a>
+          <a href="#" target="_blank" rel="noopener">X / Twitter <span>@paddockdaily</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

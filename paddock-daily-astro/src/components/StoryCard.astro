@@ -1,0 +1,18 @@
+---
+import ThumbPlaceholder from './ThumbPlaceholder.astro';
+import { timeAgo } from '../lib/directus.js';
+
+const { article, wide = false, eyebrow } = Astro.props;
+---
+
+<article class={`story-card${wide ? ' wide' : ''}`}>
+  <a class="thumb" href={`/articulo/${article.slug}`} aria-label={article.title}>
+    <ThumbPlaceholder seed={article.slug} />
+  </a>
+  <div>
+    <span class="eyebrow-cat">{eyebrow || article.category?.name}</span>
+    <h3><a href={`/articulo/${article.slug}`}>{article.title}</a></h3>
+    <p>{article.dek}</p>
+    <span class="meta">{timeAgo(article.published_date)}</span>
+  </div>
+</article>

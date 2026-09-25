@@ -1,0 +1,83 @@
+---
+// RaceCenter — próximo GP/carrera, cuenta atrás y clasificación, en vivo
+// vía APIs públicas. Sin nada editado a mano ni en Directus.
+//
+// F1 usa Jolpica-F1 (API estable, mantenida, pensada para esto) y tiene el
+// alcance completo: sesiones, pestañas Pilotos/Constructores, resultados y
+// calendario. NASCAR usa la API pública (no oficial) de ESPN — funciona
+// hoy, sin key, pero puede cambiar o romperse sin aviso al no ser un
+// contrato estable; por eso su alcance es más reducido (sin sesiones ni
+// clasificación de constructores/equipos). Si deja de funcionar, se quita
+// sin más.
+//
+// MotoGP se probó con el backend interno de motogp.com pero esa API
+// bloquea activamente (403) las peticiones hechas desde fuera de su
+// propio dominio — no es solo falta de CORS, las rechaza a propósito — así
+// que no es viable desde el navegador del visitante y se ha descartado.
+const { category } = Astro.props;
+const hasFullScope = category === 'f1';
+---
+
+<div class="racecenter" data-racecenter data-category={category}>
+  <div class="racecenter-head">
+    <div class="racecenter-gp">
+      <span class="racecenter-flag" data-rc-flag aria-hidden="true">🏁</span>
+      <div>
+        <h4 data-rc-name>Cargando…</h4>
+        <span data-rc-date>&nbsp;</span>
+        <span class="racecenter-meta" data-rc-meta></span>
+      </div>
+    </div>
+    <span class="racecenter-live" data-rc-live hidden>EN DIRECTO</span>
+  </div>
+
+  <div class="racecenter-countdown" data-rc-countdown hidden>
+    <div><strong data-rc-d>00</strong><span>días</span></div>
+    <div><strong data-rc-h>00</strong><span>horas</span></div>
+    <div><strong data-rc-m>00</strong><span>min</span></div>
+    <div><strong data-rc-s>00</strong><span>seg</span></div>
+  </div>
+
+  {hasFullScope && <ul class="racecenter-sessions" data-rc-sessions hidden></ul>}
+
+  <div class="racecenter-results" data-tabs-scope>
+    {hasFullScope ? (
+      <>
+        <div class="racecenter-tabs" data-tabs>
+          <button class="active" data-tab="drivers">Pilotos</button>
+          <button data-tab="constructors">Constructores</button>
+        </div>
+        <ul class="racecenter-standings" data-panel="drivers" data-rc-standings-drivers>
+          <li class="rc-status">Cargando…</li>
+        </ul>
+        <ul class="racecenter-standings" data-panel="constructors" data-rc-standings-constructors hidden>
+          <li class="rc-status">Cargando…</li>
+        </ul>
+      </>
+    ) : (
+      <>
+        <h5 class="racecenter-eyebrow">Clasificación de pilotos</h5>
+        <ul class="racecenter-standings" data-rc-standings-drivers>
+          <li class="rc-status">Cargando…</li>
+        </ul>
+      </>
+    )}
+  </div>
+
+  <a class="racecenter-more" href={`/categoria/${category}/resultados`}>Ver clasificación y resultados completos →</a>
+</div>
+
+<script>
+  // Imports estáticos a propósito (nada de define:vars aquí): con
+  // define:vars Astro trata el script como inline y deja de reescribir
+  // los import() relativos, así que el navegador acaba pidiéndolos tal
+  // cual a la raíz del sitio (404). La categoría se lee del data-category
+  // del propio nodo en tiempo de ejecución en su lugar.
+  import { initRaceCenterCard as initF1 } from '../lib/f1-api.js';
+  import { initRaceCenterCard as initNascar } from '../lib/nascar-api.js';
+
+  const root = document.querySelector('[data-racecenter]');
+  const inits = { f1: initF1, nascar: initNascar };
+  const init = root && inits[root.dataset.category];
+  if (init) init(root);
+</script>

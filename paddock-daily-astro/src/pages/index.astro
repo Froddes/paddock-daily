@@ -1,0 +1,155 @@
+---
+import Layout from '../layouts/Layout.astro';
+import StoryCard from '../components/StoryCard.astro';
+import ThumbPlaceholder from '../components/ThumbPlaceholder.astro';
+import {
+  getArticles,
+  getCategories,
+  getArticleCountsByCategory,
+  getOpinionColumns,
+  timeAgo,
+} from '../lib/directus.js';
+
+const latest = await getArticles({ limit: 8 });
+const hero = latest.find((a) => a.featured) || latest[0];
+const rest = latest.filter((a) => a.slug !== hero?.slug);
+const portada = rest.slice(0, 3);
+const ultimaHora = rest.slice(3, 7);
+
+const [categories, counts, opinionLatest] = await Promise.all([
+  getCategories(),
+  getArticleCountsByCategory(),
+  getOpinionColumns({ limit: 1 }),
+]);
+const opinion = opinionLatest[0];
+---
+
+<Layout title="Inicio" headerVariant="full" footerVariant="full" currentNav="inicio">
+  {hero && (
+    <section class="hero-section">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow-cat">{hero.category?.name?.toUpperCase()}</span>
+          <h1><a href={`/articulo/${hero.slug}`}>{hero.title}</a></h1>
+          <p class="hero-dek">{hero.dek}</p>
+          <div class="hero-meta-row">
+            <span class="meta">{hero.author?.name}</span>
+            <span class="meta">· {timeAgo(hero.published_date)}</span>
+          </div>
+        </div>
+        <a class="hero-visual" href={`/articulo/${hero.slug}`} aria-label={hero.title}>
+          <ThumbPlaceholder seed={hero.slug} />
+          <span class="tag">
+            <span class="checker-accent"><span></span><span></span><span></span><span></span></span>
+            {hero.category?.name}
+          </span>
+        </a>
+      </div>
+    </section>
+  )}
+
+  {portada.length > 0 && (
+    <section class="news-section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Portada</h2>
+          {categories[0] && <a class="view-all" href={`/categoria/${categories[0].slug}`}>Ver todo</a>}
+        </div>
+        <div class="news-grid">
+          {portada.map((article) => <StoryCard article={article} />)}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {ultimaHora.length > 0 && (
+    <section class="latest-section">
+      <div class="wrap latest-layout">
+        <div>
+          <div class="section-head">
+            <h2>Última hora</h2>
+          </div>
+          <ul class="latest-list">
+            {ultimaHora.map((article, i) => (
+              <li>
+                <span class="idx">{String(i + 1).padStart(2, '0')}</span>
+                <a class="thumb-sm" href={`/articulo/${article.slug}`} aria-label={article.title}><ThumbPlaceholder seed={article.slug} size="sm" /></a>
+                <div>
+                  <h4><a href={`/articulo/${article.slug}`}>{article.title}</a></h4>
+                  <span class="meta">{article.category?.name} · {timeAgo(article.published_date)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <aside class="rail-card">
+          <h4>Explorar por categoría</h4>
+          <div class="rail-tags">
+            {categories.map((cat) => <a href={`/categoria/${cat.slug}`}>{cat.name}</a>)}
+          </div>
+        </aside>
+      </div>
+    </section>
+  )}
+
+  <section class="cat-section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Todo el paddock</h2>
+      </div>
+      <div class="cat-rail">
+        {categories.map((cat) => (
+          <a class="cat-tile" href={`/categoria/${cat.slug}`}>
+            <ThumbPlaceholder seed={cat.slug} />
+            <span>{cat.name}</span>
+            <small>{counts[cat.id] || 0} artículos</small>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {opinion && (
+    <section class="opinion-section">
+      <div class="wrap">
+        <div class="opinion-inner">
+          <span class="eyebrow-cat">OPINIÓN</span>
+          <p class="opinion-quote">"{opinion.dek}"</p>
+          <div class="opinion-byline">
+            <span class="avatar">{opinion.author?.name?.charAt(0)}</span>
+            <div><strong>{opinion.author?.name}</strong><span>{opinion.author?.role}</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="news-signup" id="newsletter">
+    <div class="wrap">
+      <div class="signup-box">
+        <div>
+          <h2>Todo el paddock, cada mañana en tu correo</h2>
+          <p>Un resumen diario con lo esencial de cada categoría. Sin relleno, sin comunicados repetidos.</p>
+        </div>
+        <form class="signup-form" data-newsletter-form>
+          <input type="email" placeholder="tu@email.com" required aria-label="Correo electrónico" />
+          <button type="submit">Suscribirme
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  // TODO(integración real): sustituir por POST al webhook de n8n → Brevo
+  // específico de Paddock Daily (mismo patrón que el de Pitwall).
+  document.addEventListener('submit', (e) => {
+    if (e.target.matches('[data-newsletter-form]')) {
+      e.preventDefault();
+      alert('Formulario de ejemplo — pendiente de conectar al webhook de Brevo/n8n');
+    }
+  });
+</script>

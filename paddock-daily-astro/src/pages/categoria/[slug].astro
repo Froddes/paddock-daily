@@ -1,0 +1,106 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import StoryCard from '../../components/StoryCard.astro';
+import OpinionCard from '../../components/OpinionCard.astro';
+import CategoryCover from '../../components/CategoryCover.astro';
+import RaceCenterCard from '../../components/RaceCenterCard.astro';
+import { getCategories, getCategoryBySlug, getArticles, getOpinionColumns } from '../../lib/directus.js';
+
+export async function getStaticPaths() {
+  const categories = await getCategories();
+  return categories.map((category) => ({
+    params: { slug: category.slug },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props;
+const [articles, opinionColumns] = await Promise.all([
+  getArticles({ categorySlug: category.slug, limit: 20 }),
+  getOpinionColumns({ categorySlug: category.slug, limit: 20 }),
+]);
+const [first, ...restArticles] = articles;
+const otherCategories = (await getCategories()).filter((c) => c.slug !== category.slug);
+---
+
+<Layout title={category.name} headerVariant="full" footerVariant="simple" currentNav={category.slug}>
+  <section class="cat-hero">
+    <CategoryCover slug={category.slug} name={category.name} />
+    <div class="wrap">
+      <div class="cat-hero-top">
+        <span class="checker-accent"><span></span><span></span><span></span><span></span></span>
+        <span class="eyebrow-cat">CATEGORÍA</span>
+      </div>
+      <h1>{category.name}</h1>
+      <p>{category.description}</p>
+      <div class="cat-hero-meta">
+        <div>{articles.length}<span>artículos</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="filters">
+    <div class="wrap filters">
+      <div class="filter-tabs" data-filter-tabs>
+        <button class="active" data-filter="recientes">Recientes</button>
+        <button data-filter="opinion">Opinión{opinionColumns.length > 0 ? ` (${opinionColumns.length})` : ''}</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="cat-body">
+    <div class="wrap cat-layout">
+      <div>
+        <div data-panel="recientes">
+          {articles.length === 0 ? (
+            <p class="meta">Todavía no hay artículos publicados en esta categoría.</p>
+          ) : (
+            <div class="cat-grid">
+              {first && <StoryCard article={first} wide />}
+              {restArticles.map((article) => <StoryCard article={article} />)}
+            </div>
+          )}
+        </div>
+
+        <div data-panel="opinion" hidden>
+          {opinionColumns.length === 0 ? (
+            <p class="meta">Todavía no hay columnas de opinión en esta categoría.</p>
+          ) : (
+            <div class="opinion-grid">
+              {opinionColumns.map((column) => <OpinionCard column={column} />)}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <aside>
+        {['f1', 'nascar'].includes(category.slug) && <RaceCenterCard category={category.slug} />}
+        <div class="rail-card">
+          <h4>Otras categorías</h4>
+          <div class="rail-tags">
+            {otherCategories.map((cat) => <a href={`/categoria/${cat.slug}`}>{cat.name}</a>)}
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  // Alterna entre "Recientes" (artículos) y "Opinión" (columnas) de la
+  // categoría — los datos de ambos paneles ya vienen renderizados desde
+  // el build, esto solo cambia qué panel se muestra.
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-filter]');
+    if (!btn) return;
+    const tabs = btn.closest('[data-filter-tabs]');
+    if (!tabs) return;
+
+    tabs.querySelectorAll('[data-filter]').forEach((b) => b.classList.toggle('active', b === btn));
+
+    const target = btn.dataset.filter;
+    document.querySelectorAll('[data-panel]').forEach((panel) => {
+      panel.hidden = panel.dataset.panel !== target;
+    });
+  });
+</script>

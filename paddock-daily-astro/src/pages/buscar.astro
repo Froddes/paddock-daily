@@ -1,0 +1,138 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getArticles, getOpinionColumns } from '../lib/directus.js';
+
+// TODO(fase 4): sustituir este filtro en cliente por Pagefind, que indexa
+// el HTML generado en build time y no necesita mantener este dataset a
+// mano. Mientras tanto, esto ya busca sobre contenido real de Directus
+// (en vez del dataset de ejemplo hardcodeado de la fase de maquetación).
+const [articles, columns] = await Promise.all([
+  getArticles({ limit: 1000 }),
+  getOpinionColumns({ limit: 1000 }),
+]);
+
+const searchItems = [
+  ...articles.map((a) => ({
+    title: a.title,
+    category: a.category?.name || '',
+    dek: a.dek,
+    href: `/articulo/${a.slug}`,
+  })),
+  ...columns.map((c) => ({
+    title: c.title,
+    category: c.category ? `Opinión · ${c.category.name}` : 'Opinión',
+    dek: c.dek,
+    href: `/opinion/${c.slug}`,
+  })),
+];
+---
+
+<Layout title="Buscar" headerVariant="full" footerVariant="simple">
+  <section class="search-hero">
+    <div class="wrap">
+      <span class="eyebrow-cat">BUSCADOR</span>
+      <h1>¿Qué estás buscando?</h1>
+      <form class="search-form" role="search" onsubmit="return false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" placeholder="Piloto, equipo, circuito, categoría…" aria-label="Buscar en Paddock Daily" data-search-input autofocus />
+      </form>
+      <div class="search-meta-row">
+        <span class="meta" data-search-count></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="search-results">
+    <div class="wrap">
+      <div data-search-results></div>
+    </div>
+  </section>
+</Layout>
+
+<script type="application/json" id="search-data" set:html={JSON.stringify(searchItems)} />
+
+<script>
+  const CATEGORY_ALIASES = {
+    'Fórmula 1': ['f1', 'formula 1', 'formula1'],
+    MotoGP: ['moto gp'],
+    'GT World Challenge': ['gtwc', 'gt world'],
+  };
+
+  function normalize(str) {
+    return str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '');
+  }
+
+  function renderResults(container, items, query) {
+    if (!query.trim()) {
+      container.innerHTML = `
+        <div class="search-empty">
+          <strong>Busca por titular, piloto o categoría</strong>
+          <p>Por ejemplo: "Verstappen", "MotoGP" o "constructores".</p>
+        </div>`;
+      return;
+    }
+    if (items.length === 0) {
+      container.innerHTML = `
+        <div class="search-empty">
+          <strong>Sin resultados para "${query}"</strong>
+          <p>Prueba con otro término, o revisa la ortografía.</p>
+        </div>`;
+      return;
+    }
+    container.innerHTML = items
+      .map(
+        (item) => `
+        <article class="search-result">
+          <div class="thumb"><svg viewBox="0 0 300 190"><rect width="300" height="190" fill="#101010"/><path d="M0 40 L300 10" stroke="#3a3a3a" stroke-width="1.5"/></svg></div>
+          <div>
+            <span class="eyebrow-cat">${item.category.toUpperCase()}</span>
+            <h3><a href="${item.href}">${item.title}</a></h3>
+            <p>${item.dek || ''}</p>
+          </div>
+        </article>`
+      )
+      .join('');
+  }
+
+  function filterItems(items, query) {
+    const q = normalize(query.trim());
+    if (!q) return [];
+    return items.filter((item) => {
+      const categoryAliases = CATEGORY_ALIASES[item.category] || [];
+      return (
+        normalize(item.title).includes(q) ||
+        normalize(item.category).includes(q) ||
+        normalize(item.dek || '').includes(q) ||
+        categoryAliases.some((alias) => normalize(alias).includes(q))
+      );
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const dataEl = document.getElementById('search-data');
+    const items = dataEl ? JSON.parse(dataEl.textContent) : [];
+
+    const input = document.querySelector('[data-search-input]');
+    const resultsEl = document.querySelector('[data-search-results]');
+    const countEl = document.querySelector('[data-search-count]');
+    if (!input || !resultsEl) return;
+
+    const params = new URLSearchParams(window.location.search);
+    input.value = params.get('q') || '';
+
+    function update() {
+      const query = input.value;
+      const filtered = filterItems(items, query);
+      renderResults(resultsEl, filtered, query);
+      countEl.textContent = query.trim()
+        ? `${filtered.length} resultado${filtered.length === 1 ? '' : 's'} para "${query}"`
+        : '';
+    }
+
+    input.addEventListener('input', update);
+    update();
+  });
+</script>

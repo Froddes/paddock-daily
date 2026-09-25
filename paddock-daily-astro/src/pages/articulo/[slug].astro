@@ -1,0 +1,64 @@
+---
+import { marked } from 'marked';
+import Layout from '../../layouts/Layout.astro';
+import StoryCard from '../../components/StoryCard.astro';
+import ThumbPlaceholder from '../../components/ThumbPlaceholder.astro';
+import { getArticles, getArticleBySlug, formatDate, timeAgo } from '../../lib/directus.js';
+
+export async function getStaticPaths() {
+  const articles = await getArticles({ limit: 1000 });
+  return articles.map((article) => ({
+    params: { slug: article.slug },
+    props: { article },
+  }));
+}
+
+const { article } = Astro.props;
+const bodyHtml = marked.parse(article.body || '');
+const related = article.category
+  ? await getArticles({ categorySlug: article.category.slug, excludeSlug: article.slug, limit: 3 })
+  : [];
+---
+
+<Layout title={article.title} description={article.dek} headerVariant="simple" footerVariant="simple">
+  <div class="article-wrap">
+    <div class="breadcrumb">
+      <a href="/">Inicio</a>
+      {article.category && <> / <a href={`/categoria/${article.category.slug}`}>{article.category.name}</a></>}
+    </div>
+
+    <section class="article-head">
+      <span class="eyebrow-cat">{article.category?.name?.toUpperCase()}</span>
+      <h1>{article.title}</h1>
+      <p class="dek">{article.dek}</p>
+      <div class="byline">
+        <span class="avatar">{article.author?.name?.charAt(0) || 'P'}</span>
+        <div>
+          <strong>{article.author?.name}</strong>
+          <span>{timeAgo(article.published_date)} · {article.reading_time || 1} min de lectura</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="article-cover">
+      <ThumbPlaceholder seed={article.slug} />
+    </div>
+
+    <article class="article-body" set:html={bodyHtml} />
+
+    <div class="tag-row">
+      {article.category && <a href={`/categoria/${article.category.slug}`}>{article.category.name}</a>}
+    </div>
+  </div>
+
+  {related.length > 0 && (
+    <section class="related">
+      <div class="wrap" style="max-width:960px;margin:0 auto;">
+        <h2>Sigue leyendo</h2>
+        <div class="related-grid">
+          {related.map((a) => <StoryCard article={a} />)}
+        </div>
+      </div>
+    </section>
+  )}
+</Layout>

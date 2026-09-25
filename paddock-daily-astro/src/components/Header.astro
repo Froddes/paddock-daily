@@ -1,0 +1,67 @@
+---
+import { getCategories } from '../lib/directus.js';
+
+const { variant = 'full', currentNav = '' } = Astro.props;
+const categories = variant === 'full' ? await getCategories() : [];
+---
+
+<header>
+  <div class="wrap header-row">
+    <a href="/" class="brand" aria-label="Paddock Daily — inicio">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M12 6 H33 C46 6 46 30 33 30 H23 V58 H12 Z" fill="var(--ink)"/>
+        <g transform="translate(37,4)">
+          <rect x="0" y="0" width="10" height="10" fill="#FF5A1F"/>
+          <rect x="10" y="10" width="10" height="10" fill="#FF5A1F"/>
+          <rect x="10" y="0" width="10" height="10" fill="var(--bg)"/>
+          <rect x="0" y="10" width="10" height="10" fill="var(--bg)"/>
+        </g>
+      </svg>
+      <span class="brand-name"><b>PADDOCK</b> <em>DAILY</em></span>
+    </a>
+
+    {variant === 'full' && (
+      <nav class="primary" aria-label="Categorías" data-nav>
+        <a href="/" class={currentNav === 'inicio' ? 'current' : ''}>Inicio</a>
+        {categories.map((cat) => (
+          <a href={`/categoria/${cat.slug}`} class={currentNav === cat.slug ? 'current' : ''}>{cat.name}</a>
+        ))}
+        <a href="/opinion" class={currentNav === 'opinion' ? 'current' : ''}>Opinión</a>
+      </nav>
+    )}
+
+    <div class="header-actions">
+      <a class="icon-btn" aria-label="Buscar" href="/buscar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </a>
+      <a class="btn-subscribe" href="/#newsletter">Suscribirse</a>
+      {variant === 'full' && (
+        <button class="menu-toggle" aria-label="Abrir menú" data-action="toggle-menu">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+      )}
+    </div>
+  </div>
+</header>
+
+<script>
+  // Menú móvil — único comportamiento que sigue necesitando JS del lado
+  // cliente ahora que "Buscar" y "Suscribirse" son enlaces normales
+  // (con Astro no hace falta simular esa navegación con JS).
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action="toggle-menu"]');
+    if (!btn) return;
+    const nav = document.querySelector('nav.primary');
+    if (!nav) return;
+    const visible = nav.style.display === 'flex';
+    nav.style.display = visible ? 'none' : 'flex';
+    nav.style.flexDirection = 'column';
+    nav.style.position = 'absolute';
+    nav.style.top = '68px';
+    nav.style.left = '0';
+    nav.style.right = '0';
+    nav.style.background = 'var(--bg)';
+    nav.style.padding = '18px 20px';
+    nav.style.borderBottom = '1px solid var(--line)';
+  });
+</script>

@@ -1,0 +1,70 @@
+# Paddock Daily — Directus self-hosted
+#
+# Pensado para el mismo patrón que ya usas con n8n (Docker + proxy inverso
+# a un subdominio, ej. cms.paddockdaily.com). Dos servicios: Postgres
+# (almacena colecciones y contenido) y Directus (API + panel de admin).
+#
+# Uso:
+#   1. cp .env.example .env   y rellena los valores
+#   2. docker compose up -d
+#   3. Entra en http://<tu-servidor>:8055 (o el subdominio, si ya tienes
+#      el proxy inverso apuntando aquí) con el email/contraseña de admin
+#      definidos en .env
+
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: paddockdaily-db
+    restart: unless-stopped
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  directus:
+    image: directus/directus:11
+    container_name: paddockdaily-cms
+    restart: unless-stopped
+    ports:
+      - "8055:8055"
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - uploads:/directus/uploads
+      - extensions:/directus/extensions
+    environment:
+      KEY: ${DIRECTUS_KEY}
+      SECRET: ${DIRECTUS_SECRET}
+
+      DB_CLIENT: pg
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+
+      # Si Directus va detrás de un proxy inverso (recomendado, igual que
+      # n8n.froddes.com), cambia esto por la URL pública real:
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8055}
+
+      # Astro (en build time) necesita leer las colecciones vía API: con
+      # esto activado, los items con status=published son legibles sin
+      # token. Si prefieres mantenerlo todo privado, quita esta línea y
+      # usa un Static Access Token de un rol "Público" configurado a mano.
+      # (ver DIRECTUS-COLLECTIONS.md → Roles y permisos)
+
+volumes:
+  db_data:
+  uploads:
+  extensions:
