@@ -3,29 +3,50 @@ import { getCategories } from '../lib/directus.js';
 
 const { variant = 'full', currentNav = '' } = Astro.props;
 const categories = variant === 'full' ? await getCategories() : [];
+
+// Orden fijo del menú principal, pedido por el redactor. Se hace matching
+// por nombre (no por slug) para no depender de cómo esté configurado cada
+// slug en Directus. Cualquier categoría que exista pero no esté en esta
+// lista (Indycar, WRC, NASCAR, MotoGP, GT suelto, o categorías nuevas que
+// se creen más adelante) cae automáticamente en el desplegable "Otros".
+const MAIN_CATEGORY_ORDER = ['Fórmula 1', 'WEC', 'GT World Challenge', 'IMSA', 'DTM'];
+const ACCENTS = { á: 'a', é: 'e', í: 'i', ó: 'o', ú: 'u', à: 'a', è: 'e', ì: 'i', ò: 'o', ù: 'u', ñ: 'n' };
+const normalize = (s) => (s || '').toLowerCase().trim().replace(/[áéíóúàèìòùñ]/g, (c) => ACCENTS[c] || c);
+
+const mainCats = variant === 'full'
+  ? MAIN_CATEGORY_ORDER
+      .map((name) => categories.find((c) => normalize(c.name) === normalize(name)))
+      .filter(Boolean)
+  : [];
+const otherCats = variant === 'full'
+  ? categories.filter((c) => !mainCats.some((m) => m.id === c.id))
+  : [];
 ---
 
 <header>
   <div class="wrap header-row">
     <a href="/" class="brand" aria-label="Paddock Daily — inicio">
-      <svg viewBox="0 0 64 64" aria-hidden="true">
-        <path d="M12 6 H33 C46 6 46 30 33 30 H23 V58 H12 Z" fill="var(--ink)"/>
-        <g transform="translate(37,4)">
-          <rect x="0" y="0" width="10" height="10" fill="#FF5A1F"/>
-          <rect x="10" y="10" width="10" height="10" fill="#FF5A1F"/>
-          <rect x="10" y="0" width="10" height="10" fill="var(--bg)"/>
-          <rect x="0" y="10" width="10" height="10" fill="var(--bg)"/>
-        </g>
-      </svg>
-      <span class="brand-name"><b>PADDOCK</b> <em>DAILY</em></span>
+      <img class="brand-mark brand-mark-dark" src="/brand/logo-dark-mark.png" alt="" aria-hidden="true" width="64" height="45" />
+      <img class="brand-mark brand-mark-light" src="/brand/logo-light-mark.png" alt="" aria-hidden="true" width="64" height="48" />
+      <span class="brand-name"><b>Paddock</b> <em>Daily</em></span>
     </a>
 
     {variant === 'full' && (
       <nav class="primary" aria-label="Categorías" data-nav>
         <a href="/" class={currentNav === 'inicio' ? 'current' : ''}>Inicio</a>
-        {categories.map((cat) => (
+        {mainCats.map((cat) => (
           <a href={`/categoria/${cat.slug}`} class={currentNav === cat.slug ? 'current' : ''}>{cat.name}</a>
         ))}
+        {otherCats.length > 0 && (
+          <details class="nav-more">
+            <summary class={otherCats.some((c) => c.slug === currentNav) ? 'current' : ''}>Otros</summary>
+            <div class="nav-more-menu">
+              {otherCats.map((cat) => (
+                <a href={`/categoria/${cat.slug}`} class={currentNav === cat.slug ? 'current' : ''}>{cat.name}</a>
+              ))}
+            </div>
+          </details>
+        )}
         <a href="/opinion" class={currentNav === 'opinion' ? 'current' : ''}>Opinión</a>
       </nav>
     )}
