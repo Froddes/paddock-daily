@@ -1,0 +1,45 @@
+---
+// Logo oficial de cada categoría (F1, WEC, IMSA, DTM, GT World Challenge...).
+// Busca en build time un archivo public/brand/categories/<slug>.(svg|png|webp)
+// — el mismo esquema de normalización de slug que usa CategoryCover.astro —
+// y si todavía no se ha subido el logo de esa categoría, cae de vuelta al
+// monograma genérico (checker-accent) para no romper el layout.
+//
+// Cómo añadir un logo: guarda el archivo oficial (a ser posible SVG o PNG
+// con fondo transparente) en public/brand/categories/ con el nombre de la
+// categoría en minúsculas y sin espacios/símbolos, p. ej.:
+//   f1.svg · wec.svg · gtworldchallenge.svg (o gtwc.svg) · imsa.svg ·
+//   dtm.svg · indycar.svg · wrc.svg · nascar.svg · motogp.svg · gt.svg
+import fs from 'node:fs';
+import path from 'node:path';
+
+const { slug = '', name = '', size = 20, class: className = '' } = Astro.props;
+
+const key = slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+const dir = path.resolve('public/brand/categories');
+const exts = ['svg', 'png', 'webp'];
+
+let file = null;
+if (key) {
+  for (const ext of exts) {
+    const candidate = `${key}.${ext}`;
+    if (fs.existsSync(path.join(dir, candidate))) {
+      file = candidate;
+      break;
+    }
+  }
+}
+---
+
+{file ? (
+  <img
+    class={`cat-logo ${className}`}
+    src={`/brand/categories/${file}`}
+    alt={name ? `${name} logo` : ''}
+    width={size}
+    height={size}
+    loading="lazy"
+  />
+) : (
+  <span class={`checker-accent ${className}`} aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+)}
