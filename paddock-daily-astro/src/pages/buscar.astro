@@ -103,15 +103,51 @@ import Layout from '../layouts/Layout.astro';
     const params = new URLSearchParams(window.location.search);
     input.value = params.get('q') || '';
 
+    // Descarga como mucho CONCURRENCY fragmentos a la vez, en vez de todos
+    // de golpe con Promise.all — cada r.data() es una petición HTTP y
+    // lanzarlas todas en paralelo puede disparar un 429 de "demasiadas
+    // peticiones" en hostings compartidos como Hostinger.
+    async function fetchWithLimit(entries, concurrency, fn) {
+      const results = new Array(entries.length);
+      let next = 0;
+      async function worker() {
+        while (next < entries.length) {
+          const i = next++;
+          try {
+            results[i] = await fn(entries[i]);
+          } catch (err) {
+            results[i] = null; // un fragmento suelto que falle no tira abajo la búsqueda entera
+          }
+        }
+      }
+      await Promise.all(Array.from({ length: Math.min(concurrency, entries.length) }, worker));
+      return results.filter(Boolean);
+    }
+
+    // Token de la última búsqueda lanzada: si una búsqueda antigua tarda más
+    // en responder que una posterior (por congestión de red, reintentos,
+    // etc.), su resultado se descarta en vez de pisar el de la más reciente.
+    let latestToken = 0;
+
     async function runSearch(query) {
+      const token = ++latestToken;
+
       if (!query.trim()) {
         renderEmpty(resultsEl, '');
         countEl.textContent = '';
         return;
       }
 
-      const search = await pagefind.debouncedSearch(query);
+      let search;
+      try {
+        search = await pagefind.debouncedSearch(query);
+      } catch (err) {
+        console.error('Fallo al buscar con Pagefind:', err);
+        if (token === latestToken) renderUnavailable(resultsEl);
+        return;
+      }
       if (search === null) return; // superada por una búsqueda más reciente
+      if (token !== latestToken) return; // hay una búsqueda más reciente en curso
 
       const totalMatches = search.results.length;
 
@@ -121,14 +157,15 @@ import Layout from '../layouts/Layout.astro';
         return;
       }
 
-      // Solo pedimos los datos de los primeros resultados: cada r.data() es
-      // una petición HTTP aparte, y pedirlas todas en paralelo (Promise.all
-      // sobre TODOS los resultados) puede disparar un 429 de "demasiadas
-      // peticiones" en hostings compartidos como Hostinger si una búsqueda
-      // encaja con muchos artículos a la vez.
-      const MAX_RESULTS = 20;
+      const MAX_RESULTS = 12;
       const shown = search.results.slice(0, MAX_RESULTS);
-      const results = await Promise.all(shown.map((r) => r.data()));
+      const results = await fetchWithLimit(shown, 4, (r) => r.data());
+      if (token !== latestToken) return; // ya no es la búsqueda vigente
+
+      if (results.length === 0) {
+        renderUnavailable(resultsEl);
+        return;
+      }
 
       const items = results.map((r) => ({
         href: r.url,
