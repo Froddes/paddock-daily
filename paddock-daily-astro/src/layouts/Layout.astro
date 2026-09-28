@@ -85,7 +85,9 @@ const jsonLd = article
 </head>
 <body>
   <Header variant={headerVariant} currentNav={currentNav} />
-  <main>
+  {/* data-pagefind-body: Pagefind solo indexa lo que hay dentro de aquí
+      (así el menú y el footer no salen como resultado de cada búsqueda). */}
+  <main data-pagefind-body>
     <slot />
   </main>
   <Footer variant={footerVariant} />

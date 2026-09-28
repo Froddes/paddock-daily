@@ -41,8 +41,8 @@ const related = article.category
     </div>
 
     <section class="article-head">
-      <span class="eyebrow-cat">{article.category?.name?.toUpperCase()}</span>
-      <h1>{article.title}</h1>
+      <span class="eyebrow-cat" data-pagefind-meta="category">{article.category?.name?.toUpperCase()}</span>
+      <h1 data-pagefind-meta="title">{article.title}</h1>
       <p class="dek">{article.dek}</p>
       <div class="byline">
         <span class="avatar">{article.author?.name?.charAt(0) || 'P'}</span>
@@ -69,7 +69,7 @@ const related = article.category
   </div>
 
   {related.length > 0 && (
-    <section class="related">
+    <section class="related" data-pagefind-ignore>
       <div class="wrap" style="max-width:960px;margin:0 auto;">
         <h2>Sigue leyendo</h2>
         <div class="related-grid">
