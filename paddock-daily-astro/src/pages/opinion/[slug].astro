@@ -32,8 +32,8 @@ const initial = column.author?.name?.charAt(0) || 'P';
 >
   <div class="col-wrap">
     <section class="col-head">
-      <span class="eyebrow-cat">OPINIÓN{column.category ? ` · ${column.category.name.toUpperCase()}` : ''}</span>
-      <h1>{column.title}</h1>
+      <span class="eyebrow-cat" data-pagefind-meta="category">OPINIÓN{column.category ? ` · ${column.category.name.toUpperCase()}` : ''}</span>
+      <h1 data-pagefind-meta="title">{column.title}</h1>
       <p class="col-dek">{column.dek}</p>
       <div class="author-card">
         <span class="avatar">{initial}</span>
@@ -55,7 +55,7 @@ const initial = column.author?.name?.charAt(0) || 'P';
   </div>
 
   {more.length > 0 && (
-    <section class="more-opinion">
+    <section class="more-opinion" data-pagefind-ignore>
       <div class="col-wrap">
         <h2>Más de Opinión</h2>
         <ul class="more-list">

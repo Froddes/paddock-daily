@@ -1,34 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getArticles, getOpinionColumns } from '../lib/directus.js';
-
-// TODO(fase 4): sustituir este filtro en cliente por Pagefind, que indexa
-// el HTML generado en build time y no necesita mantener este dataset a
-// mano. Mientras tanto, esto ya busca sobre contenido real de Directus
-// (en vez del dataset de ejemplo hardcodeado de la fase de maquetación).
-const [articles, columns] = await Promise.all([
-  getArticles({ limit: 1000 }),
-  getOpinionColumns({ limit: 1000 }),
-]);
-
-const searchItems = [
-  ...articles.map((a) => ({
-    title: a.title,
-    category: a.category?.name || '',
-    dek: a.dek,
-    href: `/articulo/${a.slug}`,
-  })),
-  ...columns.map((c) => ({
-    title: c.title,
-    category: c.category ? `Opinión · ${c.category.name}` : 'Opinión',
-    dek: c.dek,
-    href: `/opinion/${c.slug}`,
-  })),
-];
 ---
 
 <Layout title="Buscar" headerVariant="full" footerVariant="simple">
-  <section class="search-hero">
+  <section class="search-hero" data-pagefind-ignore>
     <div class="wrap">
       <span class="eyebrow-cat">BUSCADOR</span>
       <h1>¿Qué estás buscando?</h1>
@@ -42,46 +17,52 @@ const searchItems = [
     </div>
   </section>
 
-  <section class="search-results">
+  <section class="search-results" data-pagefind-ignore>
     <div class="wrap">
       <div data-search-results></div>
     </div>
   </section>
 </Layout>
 
-<script type="application/json" id="search-data" set:html={JSON.stringify(searchItems)} />
-
 <script>
-  const CATEGORY_ALIASES = {
-    'Fórmula 1': ['f1', 'formula 1', 'formula1'],
-    MotoGP: ['moto gp'],
-    'GT World Challenge': ['gtwc', 'gt world'],
-  };
+  // Búsqueda con Pagefind: indexa en build time el HTML ya generado
+  // (ver `data-pagefind-body`/`data-pagefind-meta` en Layout.astro y en las
+  // plantillas de artículo/opinión), así que aquí solo consultamos su API.
+  //
+  // Importante: el índice (/pagefind/pagefind.js) solo existe DESPUÉS de un
+  // `npm run build` (que ahora corre `pagefind --site dist`). En `npm run
+  // dev` esa ruta no existe y la búsqueda no puede funcionar — probarla
+  // siempre sobre el sitio ya desplegado.
 
-  function normalize(str) {
-    return str
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '');
+  function normalizeCategory(raw) {
+    return (raw || '').toString().trim();
   }
 
-  function renderResults(container, items, query) {
-    if (!query.trim()) {
-      container.innerHTML = `
-        <div class="search-empty">
-          <strong>Busca por titular, piloto o categoría</strong>
-          <p>Por ejemplo: "Verstappen", "MotoGP" o "constructores".</p>
-        </div>`;
-      return;
-    }
-    if (items.length === 0) {
-      container.innerHTML = `
-        <div class="search-empty">
-          <strong>Sin resultados para "${query}"</strong>
-          <p>Prueba con otro término, o revisa la ortografía.</p>
-        </div>`;
-      return;
-    }
+  function renderEmpty(container, query) {
+    container.innerHTML = `
+      <div class="search-empty">
+        <strong>Busca por titular, piloto o categoría</strong>
+        <p>Por ejemplo: "Verstappen", "MotoGP" o "constructores".</p>
+      </div>`;
+  }
+
+  function renderNoResults(container, query) {
+    container.innerHTML = `
+      <div class="search-empty">
+        <strong>Sin resultados para "${query}"</strong>
+        <p>Prueba con otro término, o revisa la ortografía.</p>
+      </div>`;
+  }
+
+  function renderUnavailable(container) {
+    container.innerHTML = `
+      <div class="search-empty">
+        <strong>Buscador no disponible</strong>
+        <p>El índice de búsqueda solo se genera al publicar el sitio — esto no funciona en <code>npm run dev</code>, solo en paddock-daily.com.</p>
+      </div>`;
+  }
+
+  function renderResults(container, items) {
     container.innerHTML = items
       .map(
         (item) => `
@@ -90,49 +71,65 @@ const searchItems = [
           <div>
             <span class="eyebrow-cat">${item.category.toUpperCase()}</span>
             <h3><a href="${item.href}">${item.title}</a></h3>
-            <p>${item.dek || ''}</p>
+            <p>${item.excerpt}</p>
           </div>
         </article>`
       )
       .join('');
   }
 
-  function filterItems(items, query) {
-    const q = normalize(query.trim());
-    if (!q) return [];
-    return items.filter((item) => {
-      const categoryAliases = CATEGORY_ALIASES[item.category] || [];
-      return (
-        normalize(item.title).includes(q) ||
-        normalize(item.category).includes(q) ||
-        normalize(item.dek || '').includes(q) ||
-        categoryAliases.some((alias) => normalize(alias).includes(q))
-      );
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const dataEl = document.getElementById('search-data');
-    const items = dataEl ? JSON.parse(dataEl.textContent) : [];
-
+  document.addEventListener('DOMContentLoaded', async () => {
     const input = document.querySelector('[data-search-input]');
     const resultsEl = document.querySelector('[data-search-results]');
     const countEl = document.querySelector('[data-search-count]');
     if (!input || !resultsEl) return;
 
+    let pagefind;
+    try {
+      pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind.js');
+    } catch (err) {
+      // Normal en local (npm run dev): el índice aún no existe.
+      input.addEventListener('input', () => {
+        if (input.value.trim()) renderUnavailable(resultsEl);
+        else renderEmpty(resultsEl, '');
+      });
+      if (new URLSearchParams(window.location.search).get('q')) renderUnavailable(resultsEl);
+      return;
+    }
+
     const params = new URLSearchParams(window.location.search);
     input.value = params.get('q') || '';
 
-    function update() {
-      const query = input.value;
-      const filtered = filterItems(items, query);
-      renderResults(resultsEl, filtered, query);
-      countEl.textContent = query.trim()
-        ? `${filtered.length} resultado${filtered.length === 1 ? '' : 's'} para "${query}"`
-        : '';
+    async function runSearch(query) {
+      if (!query.trim()) {
+        renderEmpty(resultsEl, '');
+        countEl.textContent = '';
+        return;
+      }
+
+      const search = await pagefind.debouncedSearch(query);
+      if (search === null) return; // superada por una búsqueda más reciente
+
+      const results = await Promise.all(search.results.map((r) => r.data()));
+
+      if (results.length === 0) {
+        renderNoResults(resultsEl, query);
+        countEl.textContent = `0 resultados para "${query}"`;
+        return;
+      }
+
+      const items = results.map((r) => ({
+        href: r.url,
+        title: r.meta?.title || r.meta?.title_raw || 'Sin título',
+        category: normalizeCategory(r.meta?.category) || 'Paddock Daily',
+        excerpt: r.excerpt,
+      }));
+
+      renderResults(resultsEl, items);
+      countEl.textContent = `${items.length} resultado${items.length === 1 ? '' : 's'} para "${query}"`;
     }
 
-    input.addEventListener('input', update);
-    update();
+    input.addEventListener('input', () => runSearch(input.value));
+    runSearch(input.value);
   });
 </script>
