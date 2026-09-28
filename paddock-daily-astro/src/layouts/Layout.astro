@@ -1,6 +1,7 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import CookieConsent from '../components/CookieConsent.astro';
 import '../styles/style.css';
 
 const {
@@ -88,5 +89,6 @@ const jsonLd = article
     <slot />
   </main>
   <Footer variant={footerVariant} />
+  <CookieConsent />
 </body>
 </html>
