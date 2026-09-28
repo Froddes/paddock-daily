@@ -17,7 +17,19 @@ const more = await getOpinionColumns({ excludeSlug: column.slug, limit: 3 });
 const initial = column.author?.name?.charAt(0) || 'P';
 ---
 
-<Layout title={column.title} description={column.dek} theme="dark" headerVariant="simple" footerVariant="simple">
+<Layout
+  title={column.title}
+  description={column.dek}
+  theme="dark"
+  headerVariant="simple"
+  footerVariant="simple"
+  type="article"
+  article={{
+    publishedDate: column.published_date,
+    author: column.author?.name,
+    section: column.category?.name || 'Opinión',
+  }}
+>
   <div class="col-wrap">
     <section class="col-head">
       <span class="eyebrow-cat">OPINIÓN{column.category ? ` · ${column.category.name.toUpperCase()}` : ''}</span>
