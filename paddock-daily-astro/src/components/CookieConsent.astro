@@ -1,0 +1,150 @@
+---
+// Banner de consentimiento de cookies (CMP).
+//
+// Guarda la decisión del usuario en localStorage y expone `window.pdConsent`
+// para que, cuando se active AdSense (o cualquier analítica), el script que
+// las cargue pueda comprobar el consentimiento antes de instalar cookies no
+// esenciales. Mientras no haya ningún script de este tipo en el sitio, el
+// banner simplemente registra la preferencia para tenerla lista.
+---
+
+<div class="cookie-consent" data-cookie-banner hidden>
+  <div class="cookie-consent-box">
+    <div class="cookie-consent-text">
+      <p>
+        Usamos cookies técnicas necesarias para el funcionamiento del sitio.
+        Si en el futuro activamos publicidad o analítica, solo instalaremos
+        esas cookies con tu consentimiento. Puedes leer más en nuestra
+        <a href="/cookies">Política de Cookies</a>.
+      </p>
+    </div>
+    <div class="cookie-consent-actions">
+      <button type="button" class="cookie-btn cookie-btn-ghost" data-cookie-reject>Rechazar no esenciales</button>
+      <button type="button" class="cookie-btn cookie-btn-outline" data-cookie-prefs>Preferencias</button>
+      <button type="button" class="cookie-btn cookie-btn-accent" data-cookie-accept>Aceptar todas</button>
+    </div>
+  </div>
+
+  <div class="cookie-consent-panel" data-cookie-panel hidden>
+    <div class="cookie-consent-panel-box">
+      <h3>Preferencias de cookies</h3>
+      <div class="cookie-consent-row">
+        <div>
+          <strong>Necesarias</strong>
+          <p>Imprescindibles para que el sitio funcione. Siempre activas.</p>
+        </div>
+        <input type="checkbox" checked disabled aria-label="Cookies necesarias (siempre activas)" />
+      </div>
+      <div class="cookie-consent-row">
+        <div>
+          <strong>Publicidad y analítica</strong>
+          <p>Nos permiten mostrar anuncios relevantes y medir el uso del sitio. Solo se instalan si las aceptas.</p>
+        </div>
+        <input type="checkbox" data-cookie-ads aria-label="Cookies de publicidad y analítica" />
+      </div>
+      <div class="cookie-consent-actions">
+        <button type="button" class="cookie-btn cookie-btn-outline" data-cookie-panel-close>Cancelar</button>
+        <button type="button" class="cookie-btn cookie-btn-accent" data-cookie-save>Guardar preferencias</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'pd_cookie_consent';
+
+  function readConsent() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function writeConsent(ads) {
+    const consent = { necessary: true, ads: !!ads, ts: Date.now() };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(consent));
+    } catch {
+      /* localStorage no disponible (modo privado, etc.): seguimos sin persistir */
+    }
+    window.dispatchEvent(new CustomEvent('pd:consent-change', { detail: consent }));
+    return consent;
+  }
+
+  // API pública para el resto del sitio (p. ej. el loader de AdSense):
+  //   window.pdConsent.get()               -> consentimiento guardado o null
+  //   window.pdConsent.onChange(callback)  -> se llama con el consentimiento cada vez que cambia
+  //   window.pdConsent.openPreferences()   -> reabre el panel de preferencias
+  window.pdConsent = {
+    get: readConsent,
+    onChange(callback) {
+      window.addEventListener('pd:consent-change', (e) => callback(e.detail));
+    },
+    openPreferences: () => openPanel(),
+  };
+
+  const banner = document.querySelector('[data-cookie-banner]');
+  const panel = document.querySelector('[data-cookie-panel]');
+  const adsCheckbox = document.querySelector('[data-cookie-ads]');
+
+  function hideBanner() {
+    banner?.setAttribute('hidden', '');
+  }
+
+  function showBanner() {
+    banner?.removeAttribute('hidden');
+  }
+
+  function openPanel() {
+    const current = readConsent();
+    if (adsCheckbox) adsCheckbox.checked = !!current?.ads;
+    showBanner();
+    panel?.removeAttribute('hidden');
+  }
+
+  function closePanel() {
+    panel?.setAttribute('hidden', '');
+    if (readConsent()) hideBanner();
+  }
+
+  const existing = readConsent();
+  if (!existing) {
+    showBanner();
+  } else {
+    // Ya hay decisión guardada: avisamos igualmente al resto del sitio por
+    // si algún script se registra después de este.
+    window.dispatchEvent(new CustomEvent('pd:consent-change', { detail: existing }));
+  }
+
+  document.querySelector('[data-cookie-accept]')?.addEventListener('click', () => {
+    writeConsent(true);
+    closePanel();
+    hideBanner();
+  });
+
+  document.querySelector('[data-cookie-reject]')?.addEventListener('click', () => {
+    writeConsent(false);
+    closePanel();
+    hideBanner();
+  });
+
+  document.querySelector('[data-cookie-prefs]')?.addEventListener('click', openPanel);
+  document.querySelector('[data-cookie-panel-close]')?.addEventListener('click', closePanel);
+
+  document.querySelector('[data-cookie-save]')?.addEventListener('click', () => {
+    writeConsent(adsCheckbox?.checked);
+    closePanel();
+    hideBanner();
+  });
+
+  // Enlace "Preferencias de cookies" en el footer, para reabrir el panel
+  // en cualquier momento aunque ya se hubiera dado (o rechazado) consentimiento.
+  document.querySelectorAll('[data-cookie-settings]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      openPanel();
+    });
+  });
+</script>

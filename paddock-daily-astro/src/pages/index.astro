@@ -148,23 +148,53 @@ const opinion = opinionLatest[0];
           <p>Un resumen diario con lo esencial de cada categoría. Sin relleno, sin comunicados repetidos.</p>
         </div>
         <form class="signup-form" data-newsletter-form>
-          <input type="email" placeholder="tu@email.com" required aria-label="Correo electrónico" />
-          <button type="submit">Suscribirme
+          <input type="email" placeholder="tu@email.com" required aria-label="Correo electrónico" data-newsletter-input />
+          <button type="submit" data-newsletter-submit>Suscribirme
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </button>
         </form>
+        <p class="signup-msg" data-newsletter-msg role="status" aria-live="polite"></p>
       </div>
     </div>
   </section>
 </Layout>
 
 <script>
-  // TODO(integración real): sustituir por POST al webhook de n8n → Brevo
-  // específico de Paddock Daily (mismo patrón que el de Pitwall).
-  document.addEventListener('submit', (e) => {
-    if (e.target.matches('[data-newsletter-form]')) {
-      e.preventDefault();
-      alert('Formulario de ejemplo — pendiente de conectar al webhook de Brevo/n8n');
+  const NEWSLETTER_WEBHOOK = 'https://n8n.froddes.com/webhook/paddock-daily-newsletter';
+
+  document.addEventListener('submit', async (e) => {
+    const form = e.target;
+    if (!form.matches('[data-newsletter-form]')) return;
+    e.preventDefault();
+
+    const input = form.querySelector('[data-newsletter-input]');
+    const button = form.querySelector('[data-newsletter-submit]');
+    const msg = form.parentElement.querySelector('[data-newsletter-msg]');
+    const email = input.value.trim();
+    if (!email) return;
+
+    button.disabled = true;
+    input.disabled = true;
+    msg.textContent = 'Enviando…';
+    msg.className = 'signup-msg';
+
+    try {
+      const res = await fetch(NEWSLETTER_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      msg.textContent = '¡Listo! Revisa tu correo para confirmar la suscripción.';
+      msg.className = 'signup-msg signup-msg-ok';
+      form.reset();
+    } catch (err) {
+      msg.textContent = 'No hemos podido completar la suscripción. Inténtalo de nuevo en unos minutos.';
+      msg.className = 'signup-msg signup-msg-error';
+    } finally {
+      button.disabled = false;
+      input.disabled = false;
     }
   });
 </script>
