@@ -87,8 +87,15 @@ header{
 .brand-name b{ font-family:'Poppins'; font-weight:900; letter-spacing:-0.068em; }
 .brand-name em{ font-family:'Playfair Display'; font-style:normal; font-weight:700; letter-spacing:-0.062em; color:var(--accent); }
 
-nav.primary{ display:flex; align-items:center; gap:26px; overflow-x:auto; scrollbar-width:none; }
-nav.primary::-webkit-scrollbar{ display:none; }
+/* Sin overflow-x:auto aquí a propósito: cualquier valor de overflow
+   distinto de "visible" en un eje obliga al navegador a recortar
+   también el otro eje (así funciona la spec de CSS) — eso recortaba
+   verticalmente el panel flotante de "Otros" (position:absolute, se
+   abre hacia abajo) y lo dejaba invisible aunque el <details> sí se
+   abriera. El menú cabe de sobra en desktop (nav.primary se oculta del
+   todo por debajo de 900px, ver media query), así que no hace falta
+   scroll horizontal aquí. */
+nav.primary{ display:flex; align-items:center; gap:26px; flex-wrap:wrap; }
 nav.primary a{ font-size:0.86rem; font-weight:600; color:var(--ink-soft); white-space:nowrap; position:relative; padding:4px 0; }
 nav.primary a.current{ color:var(--ink); }
 nav.primary a.current::after{ content:""; position:absolute; left:0; right:0; bottom:-2px; height:2px; background:var(--accent); }
