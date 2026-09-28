@@ -113,13 +113,22 @@ import Layout from '../layouts/Layout.astro';
       const search = await pagefind.debouncedSearch(query);
       if (search === null) return; // superada por una búsqueda más reciente
 
-      const results = await Promise.all(search.results.map((r) => r.data()));
+      const totalMatches = search.results.length;
 
-      if (results.length === 0) {
+      if (totalMatches === 0) {
         renderNoResults(resultsEl, query);
         countEl.textContent = `0 resultados para "${query}"`;
         return;
       }
+
+      // Solo pedimos los datos de los primeros resultados: cada r.data() es
+      // una petición HTTP aparte, y pedirlas todas en paralelo (Promise.all
+      // sobre TODOS los resultados) puede disparar un 429 de "demasiadas
+      // peticiones" en hostings compartidos como Hostinger si una búsqueda
+      // encaja con muchos artículos a la vez.
+      const MAX_RESULTS = 20;
+      const shown = search.results.slice(0, MAX_RESULTS);
+      const results = await Promise.all(shown.map((r) => r.data()));
 
       const items = results.map((r) => ({
         href: r.url,
@@ -129,7 +138,10 @@ import Layout from '../layouts/Layout.astro';
       }));
 
       renderResults(resultsEl, items);
-      countEl.textContent = `${items.length} resultado${items.length === 1 ? '' : 's'} para "${query}"`;
+      countEl.textContent =
+        totalMatches > MAX_RESULTS
+          ? `${MAX_RESULTS} de ${totalMatches} resultados para "${query}"`
+          : `${totalMatches} resultado${totalMatches === 1 ? '' : 's'} para "${query}"`;
     }
 
     input.addEventListener('input', () => runSearch(input.value));
