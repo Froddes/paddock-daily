@@ -57,8 +57,8 @@ import Layout from '../layouts/Layout.astro';
   function renderUnavailable(container) {
     container.innerHTML = `
       <div class="search-empty">
-        <strong>Buscador no disponible</strong>
-        <p>El índice de búsqueda solo se genera al publicar el sitio — esto no funciona en <code>npm run dev</code>, solo en paddock-daily.com.</p>
+        <strong>Buscador no disponible ahora mismo</strong>
+        <p>Prueba de nuevo en unos minutos.</p>
       </div>`;
   }
 
@@ -88,7 +88,10 @@ import Layout from '../layouts/Layout.astro';
     try {
       pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind.js');
     } catch (err) {
-      // Normal en local (npm run dev): el índice aún no existe.
+      // Normal en local (npm run dev): el índice aún no existe. Si esto
+      // salta en producción, el detalle real queda solo en consola —
+      // el mensaje en pantalla es siempre genérico, nunca detalles internos.
+      console.error('Pagefind no disponible:', err);
       input.addEventListener('input', () => {
         if (input.value.trim()) renderUnavailable(resultsEl);
         else renderEmpty(resultsEl, '');
