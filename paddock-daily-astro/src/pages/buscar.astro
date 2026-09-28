@@ -1,9 +1,49 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getArticles, getOpinionColumns } from '../lib/directus.js';
+
+// Búsqueda con MiniSearch: en vez del índice partido en muchos archivos de
+// Pagefind (que Hostinger cortaba con 429 por exceso de peticiones), aquí
+// se manda UN solo JSON con todo el contenido y toda la búsqueda pasa a
+// ocurrir en el navegador, sin más peticiones de red.
+//
+// Si algún día esto pesa demasiado (varios miles de artículos), tocará
+// paginar el índice o volver a un buscador partido en el servidor — ver
+// la hoja de ruta del proyecto.
+
+const CATEGORY_ALIASES = {
+  'Fórmula 1': 'f1 formula1',
+  MotoGP: 'motogp moto gp',
+  'GT World Challenge': 'gtwc gt world',
+};
+
+const [articles, columns] = await Promise.all([
+  getArticles({ limit: 1000 }),
+  getOpinionColumns({ limit: 1000 }),
+]);
+
+const searchItems = [
+  ...articles.map((a, i) => ({
+    id: `a${i}`,
+    title: a.title,
+    category: a.category?.name || '',
+    dek: a.dek || '',
+    aliases: CATEGORY_ALIASES[a.category?.name] || '',
+    href: `/articulo/${a.slug}`,
+  })),
+  ...columns.map((c, i) => ({
+    id: `c${i}`,
+    title: c.title,
+    category: c.category ? `Opinión · ${c.category.name}` : 'Opinión',
+    dek: c.dek || '',
+    aliases: CATEGORY_ALIASES[c.category?.name] || '',
+    href: `/opinion/${c.slug}`,
+  })),
+];
 ---
 
 <Layout title="Buscar" headerVariant="full" footerVariant="simple">
-  <section class="search-hero" data-pagefind-ignore>
+  <section class="search-hero">
     <div class="wrap">
       <span class="eyebrow-cat">BUSCADOR</span>
       <h1>¿Qué estás buscando?</h1>
@@ -17,28 +57,19 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <section class="search-results" data-pagefind-ignore>
+  <section class="search-results">
     <div class="wrap">
       <div data-search-results></div>
     </div>
   </section>
 </Layout>
 
+<script type="application/json" id="search-data" set:html={JSON.stringify(searchItems)} />
+
 <script>
-  // Búsqueda con Pagefind: indexa en build time el HTML ya generado
-  // (ver `data-pagefind-body`/`data-pagefind-meta` en Layout.astro y en las
-  // plantillas de artículo/opinión), así que aquí solo consultamos su API.
-  //
-  // Importante: el índice (/pagefind/pagefind.js) solo existe DESPUÉS de un
-  // `npm run build` (que ahora corre `pagefind --site dist`). En `npm run
-  // dev` esa ruta no existe y la búsqueda no puede funcionar — probarla
-  // siempre sobre el sitio ya desplegado.
+  import MiniSearch from 'minisearch';
 
-  function normalizeCategory(raw) {
-    return (raw || '').toString().trim();
-  }
-
-  function renderEmpty(container, query) {
+  function renderEmpty(container) {
     container.innerHTML = `
       <div class="search-empty">
         <strong>Busca por titular, piloto o categoría</strong>
@@ -54,14 +85,6 @@ import Layout from '../layouts/Layout.astro';
       </div>`;
   }
 
-  function renderUnavailable(container) {
-    container.innerHTML = `
-      <div class="search-empty">
-        <strong>Buscador no disponible ahora mismo</strong>
-        <p>Prueba de nuevo en unos minutos.</p>
-      </div>`;
-  }
-
   function renderResults(container, items) {
     container.innerHTML = items
       .map(
@@ -69,119 +92,60 @@ import Layout from '../layouts/Layout.astro';
         <article class="search-result">
           <a class="thumb" href="${item.href}" aria-label="${item.title}"><svg viewBox="0 0 300 190"><rect width="300" height="190" fill="#101010"/><path d="M0 40 L300 10" stroke="#3a3a3a" stroke-width="1.5"/></svg></a>
           <div>
-            <span class="eyebrow-cat">${item.category.toUpperCase()}</span>
+            <span class="eyebrow-cat">${(item.category || 'PADDOCK DAILY').toUpperCase()}</span>
             <h3><a href="${item.href}">${item.title}</a></h3>
-            <p>${item.excerpt}</p>
+            <p>${item.dek || ''}</p>
           </div>
         </article>`
       )
       .join('');
   }
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  document.addEventListener('DOMContentLoaded', () => {
     const input = document.querySelector('[data-search-input]');
     const resultsEl = document.querySelector('[data-search-results]');
     const countEl = document.querySelector('[data-search-count]');
-    if (!input || !resultsEl) return;
+    const dataEl = document.getElementById('search-data');
+    if (!input || !resultsEl || !dataEl) return;
 
-    let pagefind;
-    try {
-      pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind.js');
-    } catch (err) {
-      // Normal en local (npm run dev): el índice aún no existe. Si esto
-      // salta en producción, el detalle real queda solo en consola —
-      // el mensaje en pantalla es siempre genérico, nunca detalles internos.
-      console.error('Pagefind no disponible:', err);
-      input.addEventListener('input', () => {
-        if (input.value.trim()) renderUnavailable(resultsEl);
-        else renderEmpty(resultsEl, '');
-      });
-      if (new URLSearchParams(window.location.search).get('q')) renderUnavailable(resultsEl);
-      return;
-    }
+    const items = JSON.parse(dataEl.textContent);
+
+    const index = new MiniSearch({
+      idField: 'id',
+      fields: ['title', 'category', 'dek', 'aliases'],
+      storeFields: ['title', 'category', 'dek', 'href'],
+      searchOptions: {
+        boost: { title: 3, category: 2, aliases: 2 },
+        fuzzy: 0.2,
+        prefix: true,
+      },
+    });
+    index.addAll(items);
 
     const params = new URLSearchParams(window.location.search);
     input.value = params.get('q') || '';
 
-    // Descarga como mucho CONCURRENCY fragmentos a la vez, en vez de todos
-    // de golpe con Promise.all — cada r.data() es una petición HTTP y
-    // lanzarlas todas en paralelo puede disparar un 429 de "demasiadas
-    // peticiones" en hostings compartidos como Hostinger.
-    async function fetchWithLimit(entries, concurrency, fn) {
-      const results = new Array(entries.length);
-      let next = 0;
-      async function worker() {
-        while (next < entries.length) {
-          const i = next++;
-          try {
-            results[i] = await fn(entries[i]);
-          } catch (err) {
-            results[i] = null; // un fragmento suelto que falle no tira abajo la búsqueda entera
-          }
-        }
-      }
-      await Promise.all(Array.from({ length: Math.min(concurrency, entries.length) }, worker));
-      return results.filter(Boolean);
-    }
-
-    // Token de la última búsqueda lanzada: si una búsqueda antigua tarda más
-    // en responder que una posterior (por congestión de red, reintentos,
-    // etc.), su resultado se descarta en vez de pisar el de la más reciente.
-    let latestToken = 0;
-
-    async function runSearch(query) {
-      const token = ++latestToken;
-
+    function update() {
+      const query = input.value;
       if (!query.trim()) {
-        renderEmpty(resultsEl, '');
+        renderEmpty(resultsEl);
         countEl.textContent = '';
         return;
       }
 
-      let search;
-      try {
-        search = await pagefind.debouncedSearch(query);
-      } catch (err) {
-        console.error('Fallo al buscar con Pagefind:', err);
-        if (token === latestToken) renderUnavailable(resultsEl);
-        return;
-      }
-      if (search === null) return; // superada por una búsqueda más reciente
-      if (token !== latestToken) return; // hay una búsqueda más reciente en curso
+      const results = index.search(query);
 
-      const totalMatches = search.results.length;
-
-      if (totalMatches === 0) {
+      if (results.length === 0) {
         renderNoResults(resultsEl, query);
         countEl.textContent = `0 resultados para "${query}"`;
         return;
       }
 
-      const MAX_RESULTS = 12;
-      const shown = search.results.slice(0, MAX_RESULTS);
-      const results = await fetchWithLimit(shown, 4, (r) => r.data());
-      if (token !== latestToken) return; // ya no es la búsqueda vigente
-
-      if (results.length === 0) {
-        renderUnavailable(resultsEl);
-        return;
-      }
-
-      const items = results.map((r) => ({
-        href: r.url,
-        title: r.meta?.title || r.meta?.title_raw || 'Sin título',
-        category: normalizeCategory(r.meta?.category) || 'Paddock Daily',
-        excerpt: r.excerpt,
-      }));
-
-      renderResults(resultsEl, items);
-      countEl.textContent =
-        totalMatches > MAX_RESULTS
-          ? `${MAX_RESULTS} de ${totalMatches} resultados para "${query}"`
-          : `${totalMatches} resultado${totalMatches === 1 ? '' : 's'} para "${query}"`;
+      renderResults(resultsEl, results);
+      countEl.textContent = `${results.length} resultado${results.length === 1 ? '' : 's'} para "${query}"`;
     }
 
-    input.addEventListener('input', () => runSearch(input.value));
-    runSearch(input.value);
+    input.addEventListener('input', update);
+    update();
   });
 </script>
