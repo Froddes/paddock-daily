@@ -1,8 +1,0 @@
-{
-  "name": "paddock-daily-cms",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "seed": "node scripts/seed-directus.mjs"
-  }
-}

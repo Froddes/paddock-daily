@@ -8,10 +8,12 @@ import {
   getArticleCountsByCategory,
   getOpinionColumns,
   timeAgo,
+  getAssetUrl,
 } from '../lib/directus.js';
 
 const latest = await getArticles({ limit: 8 });
 const hero = latest.find((a) => a.featured) || latest[0];
+const heroImageUrl = hero ? getAssetUrl(hero.featured_image, { width: 1400, height: 900 }) : null;
 const rest = latest.filter((a) => a.slug !== hero?.slug);
 const portada = rest.slice(0, 3);
 const ultimaHora = rest.slice(3, 7);
@@ -38,7 +40,11 @@ const opinion = opinionLatest[0];
           </div>
         </div>
         <a class="hero-visual" href={`/articulo/${hero.slug}`} aria-label={hero.title}>
-          <ThumbPlaceholder seed={hero.slug} />
+          {heroImageUrl ? (
+            <img class="hero-img" src={heroImageUrl} alt={hero.title} />
+          ) : (
+            <ThumbPlaceholder seed={hero.slug} />
+          )}
           <span class="tag">
             <span class="checker-accent"><span></span><span></span><span></span><span></span></span>
             {hero.category?.name}
@@ -70,16 +76,25 @@ const opinion = opinionLatest[0];
             <h2>Última hora</h2>
           </div>
           <ul class="latest-list">
-            {ultimaHora.map((article, i) => (
+            {ultimaHora.map((article, i) => {
+              const thumbUrl = getAssetUrl(article.featured_image, { width: 200, height: 150 });
+              return (
               <li>
                 <span class="idx">{String(i + 1).padStart(2, '0')}</span>
-                <a class="thumb-sm" href={`/articulo/${article.slug}`} aria-label={article.title}><ThumbPlaceholder seed={article.slug} size="sm" /></a>
+                <a class="thumb-sm" href={`/articulo/${article.slug}`} aria-label={article.title}>
+                  {thumbUrl ? (
+                    <img class="thumb-img" src={thumbUrl} alt={article.title} loading="lazy" />
+                  ) : (
+                    <ThumbPlaceholder seed={article.slug} size="sm" />
+                  )}
+                </a>
                 <div>
                   <h4><a href={`/articulo/${article.slug}`}>{article.title}</a></h4>
                   <span class="meta">{article.category?.name} · {timeAgo(article.published_date)}</span>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         </div>
 

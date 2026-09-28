@@ -12,6 +12,21 @@
 
 const BASE_URL = (import.meta.env.PUBLIC_DIRECTUS_URL || 'http://localhost:8055').replace(/\/$/, '');
 
+// Construye la URL pública del asset (imagen) servido por Directus a
+// partir del UUID del archivo. Devuelve null si no hay imagen, para que
+// los componentes puedan decidir fácilmente si mostrar la foto real o
+// caer al placeholder generado.
+export function getAssetUrl(fileId, { width, height, quality = 80, fit = 'cover' } = {}) {
+  if (!fileId) return null;
+  const qs = new URLSearchParams();
+  if (width) qs.set('width', String(width));
+  if (height) qs.set('height', String(height));
+  if (quality) qs.set('quality', String(quality));
+  if (fit) qs.set('fit', fit);
+  const query = qs.toString();
+  return `${BASE_URL}/assets/${fileId}${query ? `?${query}` : ''}`;
+}
+
 function buildQuery({ filter, fields, sort, limit } = {}) {
   const qs = new URLSearchParams();
   if (filter) qs.set('filter', JSON.stringify(filter));
@@ -83,7 +98,7 @@ export function getAuthors() {
 
 const ARTICLE_FIELDS = [
   'id', 'title', 'slug', 'dek', 'body', 'reading_time', 'featured',
-  'published_date', 'status',
+  'published_date', 'status', 'featured_image',
   'category.id', 'category.name', 'category.slug',
   'author.id', 'author.name', 'author.role',
 ];

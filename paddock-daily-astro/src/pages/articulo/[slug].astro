@@ -3,7 +3,7 @@ import { marked } from 'marked';
 import Layout from '../../layouts/Layout.astro';
 import StoryCard from '../../components/StoryCard.astro';
 import ThumbPlaceholder from '../../components/ThumbPlaceholder.astro';
-import { getArticles, getArticleBySlug, formatDate, timeAgo } from '../../lib/directus.js';
+import { getArticles, getArticleBySlug, formatDate, timeAgo, getAssetUrl } from '../../lib/directus.js';
 
 export async function getStaticPaths() {
   const articles = await getArticles({ limit: 1000 });
@@ -15,6 +15,7 @@ export async function getStaticPaths() {
 
 const { article } = Astro.props;
 const bodyHtml = marked.parse(article.body || '');
+const coverImageUrl = getAssetUrl(article.featured_image, { width: 1400, height: 700 });
 const related = article.category
   ? await getArticles({ categorySlug: article.category.slug, excludeSlug: article.slug, limit: 3 })
   : [];
@@ -41,7 +42,11 @@ const related = article.category
     </section>
 
     <div class="article-cover">
-      <ThumbPlaceholder seed={article.slug} />
+      {coverImageUrl ? (
+        <img src={coverImageUrl} alt={article.title} />
+      ) : (
+        <ThumbPlaceholder seed={article.slug} />
+      )}
     </div>
 
     <article class="article-body" set:html={bodyHtml} />
