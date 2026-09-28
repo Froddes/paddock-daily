@@ -30,17 +30,31 @@ const year = new Date().getFullYear();
         <div class="footer-col">
           <h5>SÍGUENOS</h5>
           <a href="https://instagram.com/paddockdaily" target="_blank" rel="noopener">Instagram</a>
-          <a href="#" target="_blank" rel="noopener">TikTok</a>
-          <a href="#" target="_blank" rel="noopener">X / Twitter</a>
+          <a href="https://www.tiktok.com/@paddockdaily_" target="_blank" rel="noopener">TikTok</a>
+          <a href="https://x.com/PaddockDaily_" target="_blank" rel="noopener">X / Twitter</a>
         </div>
       </div>
       <div class="footer-bottom">
         <span>© {year} Paddock Daily</span>
+        <nav class="footer-legal">
+          <a href="/aviso-legal">Aviso legal</a>
+          <a href="/privacidad">Privacidad</a>
+          <a href="/cookies">Cookies</a>
+          <a href="/terminos">Términos de uso</a>
+        </nav>
       </div>
     </div>
   </footer>
 ) : (
   <footer class="footer-simple">
-    <div class="wrap">Paddock Daily — <span>© {year}</span></div>
+    <div class="wrap">
+      Paddock Daily — <span>© {year}</span>
+      <nav class="footer-legal">
+        <a href="/aviso-legal">Aviso legal</a>
+        <a href="/privacidad">Privacidad</a>
+        <a href="/cookies">Cookies</a>
+        <a href="/terminos">Términos de uso</a>
+      </nav>
+    </div>
   </footer>
 )}

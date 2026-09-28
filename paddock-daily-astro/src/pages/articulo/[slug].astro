@@ -21,7 +21,19 @@ const related = article.category
   : [];
 ---
 
-<Layout title={article.title} description={article.dek} headerVariant="simple" footerVariant="simple">
+<Layout
+  title={article.title}
+  description={article.dek}
+  headerVariant="simple"
+  footerVariant="simple"
+  image={coverImageUrl}
+  type="article"
+  article={{
+    publishedDate: article.published_date,
+    author: article.author?.name,
+    section: article.category?.name,
+  }}
+>
   <div class="article-wrap">
     <div class="breadcrumb">
       <a href="/">Inicio</a>

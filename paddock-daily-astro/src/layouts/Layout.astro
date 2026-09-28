@@ -10,7 +10,42 @@ const {
   headerVariant = 'full',
   footerVariant = 'simple',
   currentNav = '',
+  // --- SEO / redes sociales ---
+  // image: URL absoluta de la foto de portada del artículo (si la hay).
+  // Si no se pasa, cae al logo del sitio como imagen de respaldo para
+  // que un enlace compartido nunca salga sin preview.
+  image,
+  // type: 'article' en páginas de artículo/columna, 'website' en el resto.
+  type = 'website',
+  // article: datos extra solo para páginas de artículo — habilitan el
+  // JSON-LD de tipo NewsArticle (fecha, autor, sección) que ayuda a
+  // Google a entender que es una noticia.
+  article,
 } = Astro.props;
+
+const pageTitle = title ? `Paddock Daily — ${title}` : 'Paddock Daily — Todo el paddock, cada mañana';
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImage = new URL(image || '/brand/favicon-512.png', Astro.site).toString();
+
+const jsonLd = article
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'NewsArticle',
+      headline: title,
+      description,
+      image: [ogImage],
+      datePublished: article.publishedDate,
+      dateModified: article.modifiedDate || article.publishedDate,
+      author: article.author ? [{ '@type': 'Person', name: article.author }] : undefined,
+      publisher: {
+        '@type': 'Organization',
+        name: 'Paddock Daily',
+        logo: { '@type': 'ImageObject', url: new URL('/brand/favicon-512.png', Astro.site).toString() },
+      },
+      articleSection: article.section,
+      mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
+    }
+  : null;
 ---
 
 <!DOCTYPE html>
@@ -19,13 +54,33 @@ const {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content={description} />
-  <title>{title ? `Paddock Daily — ${title}` : 'Paddock Daily'}</title>
+  <title>{pageTitle}</title>
+  <link rel="canonical" href={canonicalUrl} />
   <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="/brand/favicon-192.png" />
   <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,500;1,600&display=swap" rel="stylesheet" />
+
+  <!-- Open Graph (Facebook, WhatsApp, LinkedIn...) -->
+  <meta property="og:type" content={type} />
+  <meta property="og:site_name" content="Paddock Daily" />
+  <meta property="og:title" content={pageTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:image" content={ogImage} />
+  <meta property="og:locale" content="es_ES" />
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={pageTitle} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImage} />
+
+  {jsonLd && (
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  )}
 </head>
 <body>
   <Header variant={headerVariant} currentNav={currentNav} />
