@@ -512,6 +512,18 @@ footer.footer-simple .footer-legal{ justify-content:center; color:var(--ink-fain
 .about-hero h1{ font-size:clamp(2.2rem,4.6vw,3.2rem); font-weight:800; max-width:16ch; margin:14px 0 20px; }
 .about-hero .lede{ font-size:1.1rem; color:var(--ink-soft); max-width:58ch; line-height:1.6; }
 
+.about-hero-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:32px; align-items:center; }
+
+.about-hero-logo{ display:flex; flex-direction:column; align-items:center; gap:22px; padding:0 12px; }
+.about-hero-logo img{ width:100%; height:auto; max-width:360px; }
+.about-hero-logo::after{ content:''; width:56px; height:3px; background:var(--accent); border-radius:2px; }
+
+@media (max-width:860px){
+  .about-hero-grid{ grid-template-columns:1fr; }
+  .about-hero-logo{ padding-top:8px; }
+  .about-hero-logo img{ max-width:260px; }
+}
+
 .about-section{ padding:56px 0; border-bottom:1px solid var(--line); }
 .about-section .section-head{ margin-bottom:20px; }
 .about-section > .wrap > p{ font-size:1rem; color:var(--ink-soft); line-height:1.65; max-width:66ch; margin:0 0 16px; }
