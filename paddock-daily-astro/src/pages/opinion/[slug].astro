@@ -3,7 +3,7 @@ import { marked } from 'marked';
 import Layout from '../../layouts/Layout.astro';
 import CategoryLogo from '../../components/CategoryLogo.astro';
 import OpinionMark from '../../components/OpinionMark.astro';
-import { getOpinionColumns, getOpinionColumnBySlug, formatDate } from '../../lib/directus.js';
+import { getOpinionColumns, getOpinionColumnBySlug, formatDate, getAssetUrl } from '../../lib/directus.js';
 
 export async function getStaticPaths() {
   const columns = await getOpinionColumns({ limit: -1 });
@@ -17,6 +17,7 @@ const { column } = Astro.props;
 const bodyHtml = marked.parse(column.body || '');
 const more = await getOpinionColumns({ excludeSlug: column.slug, limit: 3 });
 const initial = column.author?.name?.charAt(0) || 'P';
+const avatarUrl = getAssetUrl(column.author?.avatar, { width: 70, height: 70 });
 ---
 
 <Layout
@@ -45,7 +46,7 @@ const initial = column.author?.name?.charAt(0) || 'P';
       <h1>{column.title}</h1>
       <p class="col-dek">{column.dek}</p>
       <div class="author-card">
-        <span class="avatar">{initial}</span>
+        <span class="avatar">{avatarUrl ? <img src={avatarUrl} alt={column.author?.name} /> : initial}</span>
         <div><strong>{column.author?.name}</strong><span>{column.author?.role} · {formatDate(column.published_date)}</span></div>
       </div>
     </section>
@@ -54,7 +55,7 @@ const initial = column.author?.name?.charAt(0) || 'P';
 
     {column.author?.bio && (
       <div class="author-box">
-        <span class="avatar">{initial}</span>
+        <span class="avatar">{avatarUrl ? <img src={avatarUrl} alt={column.author?.name} /> : initial}</span>
         <div>
           <h4>Sobre el autor</h4>
           <p>{column.author.bio}</p>

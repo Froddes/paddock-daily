@@ -339,7 +339,8 @@ nav.primary a.current::after{ content:""; position:absolute; left:0; right:0; bo
 .opinion-inner .eyebrow-cat{ color:var(--accent); }
 .opinion-quote{ font-family:'Playfair Display', serif; font-style:italic; font-weight:500; font-size:clamp(1.5rem,2.6vw,2.1rem); line-height:1.4; margin:18px 0 22px; }
 .opinion-byline{ display:flex; align-items:center; gap:12px; }
-.opinion-byline .avatar{ width:38px; height:38px; border-radius:50%; background:var(--accent); display:grid; place-items:center; font-family:'Poppins'; font-weight:800; color:#101010; font-size:0.9rem; }
+.opinion-byline .avatar{ width:38px; height:38px; border-radius:50%; background:var(--accent); display:grid; place-items:center; font-family:'Poppins'; font-weight:800; color:#101010; font-size:0.9rem; overflow:hidden; }
+.avatar img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:50%; }
 .opinion-byline strong{ display:block; font-size:0.92rem; }
 .opinion-byline span{ font-size:0.78rem; color:#A9A9A9; }
 
@@ -428,7 +429,7 @@ footer.footer-simple .footer-legal{ justify-content:center; color:var(--ink-fain
 .article-head h1{ font-size:clamp(1.9rem,4vw,2.7rem); line-height:1.12; font-weight:800; margin:14px 0 16px; }
 .dek{ font-size:1.08rem; color:var(--ink-soft); line-height:1.55; margin-bottom:20px; }
 .byline{ display:flex; align-items:center; gap:12px; }
-.byline .avatar{ width:36px; height:36px; border-radius:50%; background:var(--ink); color:var(--bg); display:grid; place-items:center; font-family:'Poppins'; font-weight:800; font-size:0.85rem; }
+.byline .avatar{ width:36px; height:36px; border-radius:50%; background:var(--ink); color:var(--bg); display:grid; place-items:center; font-family:'Poppins'; font-weight:800; font-size:0.85rem; overflow:hidden; }
 .byline strong{ display:block; font-size:0.86rem; }
 .byline span{ font-size:0.76rem; color:var(--ink-faint); }
 
@@ -467,7 +468,7 @@ footer.footer-simple .footer-legal{ justify-content:center; color:var(--ink-fain
 .col-head h1{ font-family:'Playfair Display', serif; font-style:italic; font-weight:600; font-size:clamp(2rem,4.4vw,2.9rem); line-height:1.18; margin:16px 0 22px; }
 .col-dek{ font-size:1.05rem; color:var(--ink-soft); line-height:1.6; margin-bottom:26px; font-family:'Poppins'; }
 .author-card{ display:flex; align-items:center; gap:14px; }
-.author-card .avatar{ width:46px; height:46px; border-radius:50%; background:var(--accent); color:#101010; display:grid; place-items:center; font-family:'Poppins'; font-weight:800; }
+.author-card .avatar{ width:46px; height:46px; border-radius:50%; background:var(--accent); color:#101010; display:grid; place-items:center; font-family:'Poppins'; font-weight:800; overflow:hidden; }
 .author-card strong{ display:block; font-size:0.95rem; }
 .author-card span{ font-size:0.8rem; color:var(--ink-faint); }
 
@@ -476,7 +477,7 @@ footer.footer-simple .footer-legal{ justify-content:center; color:var(--ink-fain
 .col-body .drop::first-letter{ font-family:'Poppins'; font-weight:800; font-size:3.4rem; float:left; line-height:0.8; margin:8px 10px 0 0; color:var(--accent); }
 
 .author-box{ background:var(--card); border:1px solid var(--line); padding:26px 24px; display:flex; gap:16px; align-items:flex-start; margin:40px 0; }
-.author-box .avatar{ width:52px; height:52px; border-radius:50%; background:var(--accent); color:#101010; display:grid; place-items:center; font-family:'Poppins'; font-weight:800; flex:none; }
+.author-box .avatar{ width:52px; height:52px; border-radius:50%; background:var(--accent); color:#101010; display:grid; place-items:center; font-family:'Poppins'; font-weight:800; flex:none; overflow:hidden; }
 .author-box h4{ font-family:'Poppins'; font-size:0.95rem; margin:0 0 6px; }
 .author-box p{ font-size:0.85rem; color:var(--ink-soft); margin:0; font-family:'Poppins'; line-height:1.55; }
 
@@ -523,7 +524,7 @@ footer.footer-simple .footer-legal{ justify-content:center; color:var(--ink-fain
 
 .team-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:8px; }
 .team-card{ border:1px solid var(--line); padding:24px 22px; }
-.team-card .avatar{ width:44px; height:44px; border-radius:50%; background:var(--ink); color:var(--bg); display:grid; place-items:center; font-family:'Poppins'; font-weight:800; margin-bottom:14px; }
+.team-card .avatar{ width:44px; height:44px; border-radius:50%; background:var(--ink); color:var(--bg); display:grid; place-items:center; font-family:'Poppins'; font-weight:800; margin-bottom:14px; overflow:hidden; }
 .team-card h4{ font-size:0.98rem; font-weight:800; margin-bottom:2px; }
 .team-card span{ font-size:0.8rem; color:var(--accent); font-weight:600; display:block; margin-bottom:10px; }
 .team-card p{ font-size:0.85rem; color:var(--ink-soft); line-height:1.55; margin:0; }

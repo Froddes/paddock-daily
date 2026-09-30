@@ -17,6 +17,7 @@ export async function getStaticPaths() {
 const { article } = Astro.props;
 const bodyHtml = marked.parse(article.body || '');
 const coverImageUrl = getAssetUrl(article.featured_image, { width: 1400, height: 700 });
+const authorAvatarUrl = getAssetUrl(article.author?.avatar, { width: 60, height: 60 });
 const related = article.category
   ? await getArticles({ categorySlug: article.category.slug, excludeSlug: article.slug, limit: 3 })
   : [];
@@ -51,7 +52,9 @@ const related = article.category
       <h1>{article.title}</h1>
       <p class="dek">{article.dek}</p>
       <div class="byline">
-        <span class="avatar">{article.author?.name?.charAt(0) || 'P'}</span>
+        <span class="avatar">
+          {authorAvatarUrl ? <img src={authorAvatarUrl} alt={article.author?.name} /> : (article.author?.name?.charAt(0) || 'P')}
+        </span>
         <div>
           <strong>{article.author?.name}</strong>
           <span>{timeAgo(article.published_date)} · {article.reading_time || 1} min de lectura</span>
