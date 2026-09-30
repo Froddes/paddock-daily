@@ -1,8 +1,9 @@
 ---
-import { formatDate } from '../lib/directus.js';
+import { formatDate, getAssetUrl } from '../lib/directus.js';
 
 const { column, featured = false } = Astro.props;
 const initial = column.author?.name?.charAt(0) || 'P';
+const avatarUrl = getAssetUrl(column.author?.avatar, { width: 60, height: 60 });
 ---
 
 <article class={`opinion-card${featured ? ' featured' : ''}`}>
@@ -10,7 +11,7 @@ const initial = column.author?.name?.charAt(0) || 'P';
   <h3><a href={`/opinion/${column.slug}`}>{column.title}</a></h3>
   <p>{column.dek}</p>
   <div class="byline">
-    <span class="avatar">{initial}</span>
+    <span class="avatar">{avatarUrl ? <img src={avatarUrl} alt={column.author?.name} /> : initial}</span>
     <div><strong>{column.author?.name}</strong><span class="meta">{formatDate(column.published_date)}</span></div>
   </div>
 </article>

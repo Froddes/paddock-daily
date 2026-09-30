@@ -89,7 +89,7 @@ export async function getArticleCountsByCategory() {
 
 export function getAuthors() {
   return directusFetch('authors', {
-    fields: ['id', 'name', 'bio', 'role'],
+    fields: ['id', 'name', 'bio', 'role', 'avatar'],
     sort: 'name',
   });
 }
@@ -100,7 +100,7 @@ const ARTICLE_FIELDS = [
   'id', 'title', 'slug', 'dek', 'body', 'reading_time', 'featured',
   'published_date', 'status', 'featured_image',
   'category.id', 'category.name', 'category.slug',
-  'author.id', 'author.name', 'author.role',
+  'author.id', 'author.name', 'author.role', 'author.avatar',
 ];
 
 export function getArticles({ categorySlug, limit, featured, excludeSlug } = {}) {
@@ -130,7 +130,7 @@ export async function getArticleBySlug(slug) {
 const OPINION_FIELDS = [
   'id', 'title', 'slug', 'dek', 'body', 'published_date', 'status',
   'category.id', 'category.name', 'category.slug',
-  'author.id', 'author.name', 'author.role', 'author.bio',
+  'author.id', 'author.name', 'author.role', 'author.bio', 'author.avatar',
 ];
 
 export function getOpinionColumns({ limit, categorySlug, excludeSlug } = {}) {

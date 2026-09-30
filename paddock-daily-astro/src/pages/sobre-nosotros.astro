@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getAuthors } from '../lib/directus.js';
+import { getAuthors, getAssetUrl } from '../lib/directus.js';
 
 const authors = await getAuthors();
 
@@ -44,14 +44,19 @@ const PILLARS = [
     <div class="wrap">
       <div class="section-head"><h2>Equipo editorial</h2></div>
       <div class="team-grid">
-        {authors.map((author) => (
+        {authors.map((author) => {
+          const avatarUrl = getAssetUrl(author.avatar, { width: 88, height: 88 });
+          return (
           <div class="team-card">
-            <span class="avatar">{author.name.charAt(0)}</span>
+            <span class="avatar">
+              {avatarUrl ? <img src={avatarUrl} alt={author.name} /> : author.name.charAt(0)}
+            </span>
             <h4>{author.name}</h4>
             <span>{author.role}</span>
             <p>{author.bio}</p>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   </section>
