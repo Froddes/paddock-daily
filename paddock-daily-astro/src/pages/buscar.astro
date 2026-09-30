@@ -18,8 +18,8 @@ const CATEGORY_ALIASES = {
 };
 
 const [articles, columns] = await Promise.all([
-  getArticles({ limit: 1000 }),
-  getOpinionColumns({ limit: 1000 }),
+  getArticles({ limit: -1 }),
+  getOpinionColumns({ limit: -1 }),
 ]);
 
 const searchItems = [
