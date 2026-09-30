@@ -6,7 +6,7 @@ import ThumbPlaceholder from '../../components/ThumbPlaceholder.astro';
 import { getArticles, getArticleBySlug, formatDate, timeAgo, getAssetUrl } from '../../lib/directus.js';
 
 export async function getStaticPaths() {
-  const articles = await getArticles({ limit: 1000 });
+  const articles = await getArticles({ limit: -1 });
   return articles.map((article) => ({
     params: { slug: article.slug },
     props: { article },

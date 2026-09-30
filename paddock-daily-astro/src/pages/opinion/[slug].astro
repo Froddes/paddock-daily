@@ -4,7 +4,7 @@ import Layout from '../../layouts/Layout.astro';
 import { getOpinionColumns, getOpinionColumnBySlug, formatDate } from '../../lib/directus.js';
 
 export async function getStaticPaths() {
-  const columns = await getOpinionColumns({ limit: 1000 });
+  const columns = await getOpinionColumns({ limit: -1 });
   return columns.map((column) => ({
     params: { slug: column.slug },
     props: { column },

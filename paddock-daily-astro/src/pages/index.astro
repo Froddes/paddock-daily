@@ -59,7 +59,6 @@ const opinion = opinionLatest[0];
       <div class="wrap">
         <div class="section-head">
           <h2>Portada</h2>
-          {categories[0] && <a class="view-all" href={`/categoria/${categories[0].slug}`}>Ver todo</a>}
         </div>
         <div class="news-grid">
           {portada.map((article) => <StoryCard article={article} />)}
