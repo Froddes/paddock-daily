@@ -4,6 +4,7 @@
 // de pilotos: esa API no expone horarios de sesión ni resultados de
 // carrera con detalle para NASCAR.
 import Layout from '../../../layouts/Layout.astro';
+import CategoryLogo from '../../../components/CategoryLogo.astro';
 ---
 
 <Layout
@@ -18,7 +19,10 @@ import Layout from '../../../layouts/Layout.astro';
     </div>
 
     <section class="article-head">
-      <span class="eyebrow-cat">NASCAR · RESULTADOS</span>
+      <div class="cat-hero-top">
+        <CategoryLogo slug="nascar" name="NASCAR" size={26} onLight />
+        <span class="eyebrow-cat">NASCAR · RESULTADOS</span>
+      </div>
       <h1>Clasificación de pilotos</h1>
       <p class="dek">Datos en vivo de la NASCAR Cup Series, vía la API pública (no oficial) de ESPN.</p>
     </section>

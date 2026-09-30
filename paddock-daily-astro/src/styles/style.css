@@ -44,6 +44,7 @@ a{ color:inherit; text-decoration:none; }
 
 h1,h2,h3,h4{ font-family:'Poppins', sans-serif; margin:0; letter-spacing:0.01em; }
 .eyebrow-cat{ font-family:'Poppins'; font-weight:700; font-size:0.72rem; letter-spacing:0.03em; color:var(--accent); }
+.eyebrow-cat.card-eyebrow{ display:inline-flex; align-items:center; gap:6px; }
 .meta{ font-size:0.82rem; color:var(--ink-faint); }
 
 /* ---------- checker accent (monograma) ---------- */
@@ -55,6 +56,15 @@ h1,h2,h3,h4{ font-family:'Poppins', sans-serif; margin:0; letter-spacing:0.01em;
 .checker-accent span:nth-child(2){ background:var(--ink); }
 .checker-accent span:nth-child(3){ background:var(--ink); }
 .checker-accent span:nth-child(4){ background:var(--accent); }
+
+/* ---------- logo de categoría (CategoryLogo.astro) ---------- */
+.cat-logo{ width:auto; max-width:120px; display:block; flex:none; }
+
+/* ---------- monograma de Opinión (OpinionMark.astro) ---------- */
+.opinion-mark{
+  font-family:'Playfair Display'; font-style:italic; font-weight:700;
+  color:var(--accent); line-height:0.6; display:block;
+}
 
 
 .dot-field{
@@ -382,7 +392,7 @@ footer.footer-simple .footer-legal{ justify-content:center; color:var(--ink-fain
   border-bottom:1px solid var(--line);
 }
 .cat-hero .wrap{ position:relative; z-index:1; }
-.cat-hero-top{ display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+.cat-hero-top{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; margin-bottom:16px; }
 .cat-hero h1{ font-size:clamp(2.4rem,5vw,3.6rem); font-weight:800; color:#fff; }
 .cat-hero p{ color:rgba(242,242,242,0.78); max-width:56ch; font-size:1.02rem; line-height:1.55; margin-top:14px; }
 .cat-hero-meta{ margin-top:18px; display:flex; gap:22px; }

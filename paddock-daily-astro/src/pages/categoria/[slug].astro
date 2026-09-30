@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import StoryCard from '../../components/StoryCard.astro';
 import OpinionCard from '../../components/OpinionCard.astro';
 import CategoryCover from '../../components/CategoryCover.astro';
+import CategoryLogo from '../../components/CategoryLogo.astro';
 import RaceCenterCard from '../../components/RaceCenterCard.astro';
 import { getCategories, getCategoryBySlug, getArticles, getOpinionColumns } from '../../lib/directus.js';
 
@@ -28,8 +29,7 @@ const otherCategories = (await getCategories()).filter((c) => c.slug !== categor
     <CategoryCover slug={category.slug} name={category.name} />
     <div class="wrap">
       <div class="cat-hero-top">
-        <span class="checker-accent"><span></span><span></span><span></span><span></span></span>
-        <span class="eyebrow-cat">CATEGORÍA</span>
+        <CategoryLogo slug={category.slug} name={category.name} size={30} />
       </div>
       <h1>{category.name}</h1>
       <p>{category.description}</p>

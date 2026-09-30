@@ -4,6 +4,7 @@
 // esa API no da resultados de carrera con detalle de forma fiable, así
 // que aquí solo hay clasificación de pilotos y calendario de la temporada.
 import Layout from '../../../layouts/Layout.astro';
+import CategoryLogo from '../../../components/CategoryLogo.astro';
 ---
 
 <Layout
@@ -18,7 +19,10 @@ import Layout from '../../../layouts/Layout.astro';
     </div>
 
     <section class="article-head">
-      <span class="eyebrow-cat">MOTOGP · RESULTADOS</span>
+      <div class="cat-hero-top">
+        <CategoryLogo slug="motogp" name="MotoGP" size={26} onLight />
+        <span class="eyebrow-cat">MOTOGP · RESULTADOS</span>
+      </div>
       <h1>Clasificación y calendario</h1>
       <p class="dek">Datos en vivo de la temporada actual, vía la API pública (no oficial) de MotoGP.</p>
     </section>
