@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import StoryCard from '../components/StoryCard.astro';
 import ThumbPlaceholder from '../components/ThumbPlaceholder.astro';
+import CategoryLogo from '../components/CategoryLogo.astro';
 import {
   getArticles,
   getCategories,
@@ -46,8 +47,7 @@ const opinion = opinionLatest[0];
             <ThumbPlaceholder seed={hero.slug} />
           )}
           <span class="tag">
-            <span class="checker-accent"><span></span><span></span><span></span><span></span></span>
-            {hero.category?.name}
+            <CategoryLogo slug={hero.category?.slug} name={hero.category?.name} size={20} />
           </span>
         </a>
       </div>

@@ -3,6 +3,7 @@ import { marked } from 'marked';
 import Layout from '../../layouts/Layout.astro';
 import StoryCard from '../../components/StoryCard.astro';
 import ThumbPlaceholder from '../../components/ThumbPlaceholder.astro';
+import CategoryLogo from '../../components/CategoryLogo.astro';
 import { getArticles, getArticleBySlug, formatDate, timeAgo, getAssetUrl } from '../../lib/directus.js';
 
 export async function getStaticPaths() {
@@ -41,7 +42,12 @@ const related = article.category
     </div>
 
     <section class="article-head">
-      <span class="eyebrow-cat">{article.category?.name?.toUpperCase()}</span>
+      <div class="cat-hero-top">
+        {article.category && (
+          <CategoryLogo slug={article.category.slug} name={article.category.name} size={26} onLight />
+        )}
+        <span class="eyebrow-cat">{article.category?.name?.toUpperCase()}</span>
+      </div>
       <h1>{article.title}</h1>
       <p class="dek">{article.dek}</p>
       <div class="byline">

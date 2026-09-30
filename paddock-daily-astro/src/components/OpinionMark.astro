@@ -1,0 +1,10 @@
+---
+// Monograma de la sección Opinión — no es una categoría de motorsport
+// real, así que no tiene logo oficial que mostrar. En vez del
+// checker-accent genérico, usamos unas comillas grandes en Playfair
+// Display (la misma tipografía serif del "Daily" del logo), coherente
+// con el resto del branding y sin depender de ningún asset externo.
+const { size = 30 } = Astro.props;
+---
+
+<span class="opinion-mark" style={`font-size:${size}px`} aria-hidden="true">&ldquo;</span>

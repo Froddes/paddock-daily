@@ -1,6 +1,8 @@
 ---
 import { marked } from 'marked';
 import Layout from '../../layouts/Layout.astro';
+import CategoryLogo from '../../components/CategoryLogo.astro';
+import OpinionMark from '../../components/OpinionMark.astro';
 import { getOpinionColumns, getOpinionColumnBySlug, formatDate } from '../../lib/directus.js';
 
 export async function getStaticPaths() {
@@ -32,7 +34,14 @@ const initial = column.author?.name?.charAt(0) || 'P';
 >
   <div class="col-wrap">
     <section class="col-head">
-      <span class="eyebrow-cat">OPINIÓN{column.category ? ` · ${column.category.name.toUpperCase()}` : ''}</span>
+      <div class="cat-hero-top">
+        {column.category ? (
+          <CategoryLogo slug={column.category.slug} name={column.category.name} size={26} />
+        ) : (
+          <OpinionMark size={26} />
+        )}
+        <span class="eyebrow-cat">OPINIÓN{column.category ? ` · ${column.category.name.toUpperCase()}` : ''}</span>
+      </div>
       <h1>{column.title}</h1>
       <p class="col-dek">{column.dek}</p>
       <div class="author-card">

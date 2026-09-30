@@ -4,6 +4,7 @@
 // vacíos organizados en pestañas; los datos se piden y pintan en el
 // navegador del visitante.
 import Layout from '../../../layouts/Layout.astro';
+import CategoryLogo from '../../../components/CategoryLogo.astro';
 ---
 
 <Layout
@@ -18,7 +19,10 @@ import Layout from '../../../layouts/Layout.astro';
     </div>
 
     <section class="article-head">
-      <span class="eyebrow-cat">FÓRMULA 1 · RESULTADOS</span>
+      <div class="cat-hero-top">
+        <CategoryLogo slug="f1" name="Fórmula 1" size={26} onLight />
+        <span class="eyebrow-cat">FÓRMULA 1 · RESULTADOS</span>
+      </div>
       <h1>Clasificación y resultados</h1>
       <p class="dek">Datos en vivo de la temporada actual, vía la API pública de F1.</p>
     </section>

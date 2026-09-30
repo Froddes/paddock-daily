@@ -5,15 +5,24 @@
 // y si todavía no se ha subido el logo de esa categoría, cae de vuelta al
 // monograma genérico (checker-accent) para no romper el layout.
 //
+// Casi todos estos logos están recoloreados en blanco (pensados para el
+// hero oscuro de categoría/portada). Sobre fondo claro (tarjetas,
+// cabecera de artículo, páginas de resultados) hay que pasar
+// `onLight={true}`, que busca primero <slug>-onlight.(svg|png|webp) — la
+// versión con los colores originales — y solo cae al archivo en blanco si
+// esa variante no existe todavía.
+//
 // Cómo añadir un logo: guarda el archivo oficial (a ser posible SVG o PNG
 // con fondo transparente) en public/brand/categories/ con el nombre de la
 // categoría en minúsculas y sin espacios/símbolos, p. ej.:
 //   f1.svg · wec.svg · gtworldchallenge.svg (o gtwc.svg) · imsa.svg ·
 //   dtm.svg · indycar.svg · wrc.svg · nascar.svg · motogp.svg · gt.svg
+// Y, si hace falta una versión para fondo claro, el mismo nombre con
+// sufijo -onlight, p. ej. wec-onlight.svg.
 import fs from 'node:fs';
 import path from 'node:path';
 
-const { slug = '', name = '', size = 20, class: className = '' } = Astro.props;
+const { slug = '', name = '', size = 20, onLight = false, class: className = '' } = Astro.props;
 
 const key = slug.toLowerCase().replace(/[^a-z0-9]/g, '');
 const dir = path.resolve('public/brand/categories');
@@ -21,11 +30,16 @@ const exts = ['svg', 'png', 'webp'];
 
 let file = null;
 if (key) {
-  for (const ext of exts) {
-    const candidate = `${key}.${ext}`;
-    if (fs.existsSync(path.join(dir, candidate))) {
-      file = candidate;
-      break;
+  const candidates = onLight
+    ? [key + '-onlight', key]
+    : [key];
+  outer: for (const base of candidates) {
+    for (const ext of exts) {
+      const candidate = `${base}.${ext}`;
+      if (fs.existsSync(path.join(dir, candidate))) {
+        file = candidate;
+        break outer;
+      }
     }
   }
 }
@@ -36,8 +50,7 @@ if (key) {
     class={`cat-logo ${className}`}
     src={`/brand/categories/${file}`}
     alt={name ? `${name} logo` : ''}
-    width={size}
-    height={size}
+    style={`height:${size}px`}
     loading="lazy"
   />
 ) : (
