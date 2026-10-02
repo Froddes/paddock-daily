@@ -12,6 +12,12 @@
 
 const BASE_URL = (import.meta.env.PUBLIC_DIRECTUS_URL || 'http://localhost:8055').replace(/\/$/, '');
 
+// Artículos por página en los listados de categoría. Vive aquí (en vez de
+// como `const` suelta en cada .astro) porque `getStaticPaths()` se
+// ejecuta en un scope aislado y solo puede ver imports, no variables
+// declaradas en el frontmatter del propio archivo.
+export const PER_PAGE = 13;
+
 // Construye la URL pública del asset (imagen) servido por Directus a
 // partir del UUID del archivo. Devuelve null si no hay imagen, para que
 // los componentes puedan decidir fácilmente si mostrar la foto real o

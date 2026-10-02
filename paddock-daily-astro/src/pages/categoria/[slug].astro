@@ -1,9 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import CategoryPageBody from '../../components/CategoryPageBody.astro';
-import { getCategories, getArticles, getArticleCount, getOpinionColumns } from '../../lib/directus.js';
-
-const PER_PAGE = 13;
+import { getCategories, getArticles, getArticleCount, getOpinionColumns, PER_PAGE } from '../../lib/directus.js';
 
 export async function getStaticPaths() {
   const categories = await getCategories();
