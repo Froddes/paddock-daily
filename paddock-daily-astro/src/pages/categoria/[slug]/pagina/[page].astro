@@ -1,0 +1,58 @@
+---
+// Páginas 2 en adelante del listado de artículos de una categoría — la
+// página 1 vive en /categoria/[slug].astro (sin sufijo en la URL). Ver
+// ese archivo y components/CategoryPageBody.astro para el resto del
+// contexto; esta página solo decide el offset/página y delega el resto.
+import Layout from '../../../../layouts/Layout.astro';
+import CategoryPageBody from '../../../../components/CategoryPageBody.astro';
+import { getCategories, getArticles, getArticleCount, getOpinionColumns } from '../../../../lib/directus.js';
+
+const PER_PAGE = 13;
+
+export async function getStaticPaths() {
+  const categories = await getCategories();
+  const paths = [];
+
+  for (const category of categories) {
+    const total = await getArticleCount({ categorySlug: category.slug });
+    const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+    for (let page = 2; page <= totalPages; page++) {
+      paths.push({
+        params: { slug: category.slug, page: String(page) },
+        props: { category },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { category } = Astro.props;
+const currentPage = Number(Astro.params.page);
+
+const [articles, articlesTotal, opinionColumns] = await Promise.all([
+  getArticles({ categorySlug: category.slug, limit: PER_PAGE, offset: (currentPage - 1) * PER_PAGE }),
+  getArticleCount({ categorySlug: category.slug }),
+  getOpinionColumns({ categorySlug: category.slug, limit: 20 }),
+]);
+const totalPages = Math.max(1, Math.ceil(articlesTotal / PER_PAGE));
+const otherCategories = (await getCategories()).filter((c) => c.slug !== category.slug);
+---
+
+<Layout
+  title={`${category.name} · Página ${currentPage}`}
+  headerVariant="full"
+  footerVariant="simple"
+  currentNav={category.slug}
+>
+  <CategoryPageBody
+    category={category}
+    articles={articles}
+    articlesTotal={articlesTotal}
+    opinionColumns={opinionColumns}
+    otherCategories={otherCategories}
+    currentPage={currentPage}
+    totalPages={totalPages}
+    basePath={`/categoria/${category.slug}`}
+  />
+</Layout>
