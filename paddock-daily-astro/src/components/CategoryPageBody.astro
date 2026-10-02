@@ -1,0 +1,147 @@
+---
+// Cuerpo completo de la página de categoría (hero, tabs, grid de
+// artículos + paginación, panel de opinión y sidebar). Lo comparten
+// categoria/[slug].astro (página 1, sin sufijo en la URL) y
+// categoria/[slug]/pagina/[page].astro (página 2 en adelante) para no
+// duplicar toda esta maquetación en dos sitios.
+import StoryCard from './StoryCard.astro';
+import OpinionCard from './OpinionCard.astro';
+import CategoryCover from './CategoryCover.astro';
+import CategoryLogo from './CategoryLogo.astro';
+import RaceCenterCard from './RaceCenterCard.astro';
+
+const {
+  category,
+  articles,
+  articlesTotal,
+  opinionColumns,
+  otherCategories,
+  currentPage,
+  totalPages,
+  basePath,
+} = Astro.props;
+
+const [first, ...restArticles] = articles;
+
+// Rango de números de página a mostrar: todas si son pocas, si no una
+// ventana alrededor de la página actual + primera/última + "…".
+function getPageItems(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const items = new Set([1, total, current, current - 1, current + 1]);
+  const sorted = [...items].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
+  const withGaps = [];
+  sorted.forEach((n, i) => {
+    if (i > 0 && n - sorted[i - 1] > 1) withGaps.push('…');
+    withGaps.push(n);
+  });
+  return withGaps;
+}
+
+const pageUrl = (n) => (n <= 1 ? basePath : `${basePath}/pagina/${n}`);
+const pageItems = totalPages > 1 ? getPageItems(currentPage, totalPages) : [];
+---
+
+<section class="cat-hero">
+  <CategoryCover slug={category.slug} name={category.name} />
+  <div class="wrap">
+    <div class="cat-hero-top">
+      <CategoryLogo slug={category.slug} name={category.name} size={30} />
+    </div>
+    <h1>{category.name}</h1>
+    <p>{category.description}</p>
+    <div class="cat-hero-meta">
+      <div>{articlesTotal}<span>artículos</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="filters">
+  <div class="wrap filters">
+    <div class="filter-tabs" data-filter-tabs>
+      <button class="active" data-filter="recientes">Recientes</button>
+      <button data-filter="opinion">Opinión{opinionColumns.length > 0 ? ` (${opinionColumns.length})` : ''}</button>
+    </div>
+  </div>
+</section>
+
+<section class="cat-body">
+  <div class="wrap cat-layout">
+    <div>
+      <div data-panel="recientes">
+        {articles.length === 0 ? (
+          <p class="meta">Todavía no hay artículos publicados en esta categoría.</p>
+        ) : (
+          <div class="cat-grid">
+            {first && <StoryCard article={first} wide />}
+            {restArticles.map((article) => <StoryCard article={article} />)}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <nav class="pagination" aria-label="Paginación de artículos">
+            {currentPage > 1 ? (
+              <a class="pagination-arrow" href={pageUrl(currentPage - 1)}>← Anterior</a>
+            ) : (
+              <span class="pagination-arrow disabled">← Anterior</span>
+            )}
+            <div class="pagination-pages">
+              {pageItems.map((item) =>
+                item === '…' ? (
+                  <span class="pagination-ellipsis">…</span>
+                ) : item === currentPage ? (
+                  <span class="pagination-page active" aria-current="page">{item}</span>
+                ) : (
+                  <a href={pageUrl(item)} class="pagination-page">{item}</a>
+                )
+              )}
+            </div>
+            {currentPage < totalPages ? (
+              <a class="pagination-arrow" href={pageUrl(currentPage + 1)}>Siguiente →</a>
+            ) : (
+              <span class="pagination-arrow disabled">Siguiente →</span>
+            )}
+          </nav>
+        )}
+      </div>
+
+      <div data-panel="opinion" hidden>
+        {opinionColumns.length === 0 ? (
+          <p class="meta">Todavía no hay columnas de opinión en esta categoría.</p>
+        ) : (
+          <div class="opinion-grid">
+            {opinionColumns.map((column) => <OpinionCard column={column} />)}
+          </div>
+        )}
+      </div>
+    </div>
+
+    <aside>
+      {['f1', 'nascar'].includes(category.slug) && <RaceCenterCard category={category.slug} />}
+      <div class="rail-card">
+        <h4>Otras categorías</h4>
+        <div class="rail-tags">
+          {otherCategories.map((cat) => <a href={`/categoria/${cat.slug}`}>{cat.name}</a>)}
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<script>
+  // Alterna entre "Recientes" (artículos) y "Opinión" (columnas) de la
+  // categoría — los datos de ambos paneles ya vienen renderizados desde
+  // el build, esto solo cambia qué panel se muestra.
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-filter]');
+    if (!btn) return;
+    const tabs = btn.closest('[data-filter-tabs]');
+    if (!tabs) return;
+
+    tabs.querySelectorAll('[data-filter]').forEach((b) => b.classList.toggle('active', b === btn));
+
+    const target = btn.dataset.filter;
+    document.querySelectorAll('[data-panel]').forEach((panel) => {
+      panel.hidden = panel.dataset.panel !== target;
+    });
+  });
+</script>

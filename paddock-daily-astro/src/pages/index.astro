@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import StoryCard from '../components/StoryCard.astro';
 import ThumbPlaceholder from '../components/ThumbPlaceholder.astro';
+import CategoryLogo from '../components/CategoryLogo.astro';
 import {
   getArticles,
   getCategories,
@@ -10,6 +11,7 @@ import {
   timeAgo,
   getAssetUrl,
 } from '../lib/directus.js';
+import { getCategoryCoverUrl } from '../lib/categoryImages.js';
 
 const latest = await getArticles({ limit: 8 });
 const hero = latest.find((a) => a.featured) || latest[0];
@@ -107,12 +109,23 @@ const opinion = opinionLatest[0];
     <div class="wrap">
       <div class="section-head">
         <h2>Todo el paddock</h2>
+        <div class="cat-rail-nav">
+          <button type="button" class="cat-rail-arrow" data-cat-rail-prev aria-label="Ver categorías anteriores">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button type="button" class="cat-rail-arrow" data-cat-rail-next aria-label="Ver más categorías">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
       </div>
-      <div class="cat-rail">
+      <div class="cat-rail" data-cat-rail>
         {categories.map((cat) => (
           <a class="cat-tile" href={`/categoria/${cat.slug}`}>
-            <ThumbPlaceholder seed={cat.slug} />
-            <span>{cat.name}</span>
+            <img class="cat-tile-img" src={getCategoryCoverUrl(cat.slug)} alt="" aria-hidden="true" />
+            <div class="cat-tile-top">
+              <CategoryLogo slug={cat.slug} name={cat.name} size={15} />
+              <span>{cat.name}</span>
+            </div>
             <small>{counts[cat.id] || 0} artículos</small>
           </a>
         ))}
@@ -155,6 +168,34 @@ const opinion = opinionLatest[0];
 </Layout>
 
 <script>
+  // Flechas del rail de categorías ("Todo el paddock"): desplazan el
+  // contenedor con scroll nativo (igual que el swipe táctil en móvil) y
+  // se deshabilitan solas al llegar al principio/final.
+  document.querySelectorAll('[data-cat-rail]').forEach((rail) => {
+    const section = rail.closest('.cat-section');
+    const prevBtn = section?.querySelector('[data-cat-rail-prev]');
+    const nextBtn = section?.querySelector('[data-cat-rail-next]');
+    if (!prevBtn || !nextBtn) return;
+
+    const scrollByTile = (dir) => {
+      const tile = rail.querySelector('.cat-tile');
+      const step = tile ? tile.getBoundingClientRect().width + 16 : rail.clientWidth * 0.8;
+      rail.scrollBy({ left: dir * step * 2, behavior: 'smooth' });
+    };
+
+    const updateArrows = () => {
+      const max = rail.scrollWidth - rail.clientWidth - 2;
+      prevBtn.disabled = rail.scrollLeft <= 0;
+      nextBtn.disabled = rail.scrollLeft >= max;
+    };
+
+    prevBtn.addEventListener('click', () => scrollByTile(-1));
+    nextBtn.addEventListener('click', () => scrollByTile(1));
+    rail.addEventListener('scroll', updateArrows, { passive: true });
+    window.addEventListener('resize', updateArrows);
+    updateArrows();
+  });
+
   const NEWSLETTER_WEBHOOK = 'https://n8n.froddes.com/webhook/paddock-daily-newsletter';
 
   document.addEventListener('submit', async (e) => {

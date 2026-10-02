@@ -2,24 +2,11 @@
 // Banner de cabecera por categoría — fotografía editorial (IA) por
 // disciplina, con un motivo genérico de reserva para categorías nuevas
 // que todavía no tengan imagen propia en public/covers/.
+import { getCategoryCoverUrl } from '../lib/categoryImages.js';
+
 const { slug = '', name = '' } = Astro.props;
-
-const key = slug.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-const IMAGE_BY_KEY = {
-  f1: 'f1',
-  motogp: 'motogp',
-  wec: 'wec',
-  dtm: 'dtm',
-  imsa: 'imsa',
-  nascar: 'nascar',
-  gtworldchallenge: 'gtwc',
-  gtwc: 'gtwc',
-};
-
-const image = IMAGE_BY_KEY[key] || 'generic';
 ---
 
 <div class="category-cover">
-  <img src={`/covers/${image}.webp`} alt="" aria-hidden="true" />
+  <img src={getCategoryCoverUrl(slug)} alt="" aria-hidden="true" />
 </div>

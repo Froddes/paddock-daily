@@ -27,12 +27,13 @@ export function getAssetUrl(fileId, { width, height, quality = 80, fit = 'cover'
   return `${BASE_URL}/assets/${fileId}${query ? `?${query}` : ''}`;
 }
 
-function buildQuery({ filter, fields, sort, limit } = {}) {
+function buildQuery({ filter, fields, sort, limit, offset } = {}) {
   const qs = new URLSearchParams();
   if (filter) qs.set('filter', JSON.stringify(filter));
   if (fields) qs.set('fields', fields.join(','));
   if (sort) qs.set('sort', sort);
   if (limit) qs.set('limit', String(limit));
+  if (offset) qs.set('offset', String(offset));
   return qs.toString();
 }
 
@@ -103,7 +104,7 @@ const ARTICLE_FIELDS = [
   'author.id', 'author.name', 'author.role', 'author.avatar',
 ];
 
-export function getArticles({ categorySlug, limit, featured, excludeSlug } = {}) {
+export function getArticles({ categorySlug, limit, offset, featured, excludeSlug } = {}) {
   const filter = { ...PUBLISHED };
   if (categorySlug) filter.category = { slug: { _eq: categorySlug } };
   if (featured !== undefined) filter.featured = { _eq: featured };
@@ -113,7 +114,23 @@ export function getArticles({ categorySlug, limit, featured, excludeSlug } = {})
     fields: ARTICLE_FIELDS,
     sort: '-published_date',
     limit,
+    offset,
   });
+}
+
+// Nº total de artículos publicados que cumplen el filtro — para calcular
+// cuántas páginas hacen falta en la paginación de categoría. Vía el
+// endpoint de agregación de Directus (no trae los artículos, solo cuenta).
+export async function getArticleCount({ categorySlug } = {}) {
+  const filter = { ...PUBLISHED };
+  if (categorySlug) filter.category = { slug: { _eq: categorySlug } };
+  const qs = new URLSearchParams();
+  qs.set('aggregate[count]', 'id');
+  qs.set('filter', JSON.stringify(filter));
+  const res = await fetch(`${BASE_URL}/items/articles?${qs.toString()}`);
+  if (!res.ok) return 0;
+  const json = await res.json();
+  return Number(json.data?.[0]?.count?.id ?? 0);
 }
 
 export async function getArticleBySlug(slug) {
