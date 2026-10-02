@@ -572,6 +572,7 @@ footer.footer-simple .footer-legal{ justify-content:center; color:var(--ink-fain
 .search-result:last-child{ border-bottom:1px solid var(--line); }
 .search-result .thumb{ display:block; width:120px; height:80px; background:var(--ink); position:relative; overflow:hidden; }
 .search-result .thumb svg{ position:absolute; inset:0; width:100%; height:100%; }
+.search-result .thumb img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .search-result h3{ font-size:1.02rem; font-weight:700; line-height:1.32; margin:6px 0; }
 .search-result p{ font-size:0.86rem; color:var(--ink-soft); line-height:1.5; margin:0 0 6px; }
 .search-empty{ padding:48px 0; text-align:center; }

@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getArticles, getOpinionColumns } from '../lib/directus.js';
+import { getArticles, getOpinionColumns, getAssetUrl } from '../lib/directus.js';
 
 // Búsqueda con MiniSearch: en vez del índice partido en muchos archivos de
 // Pagefind (que Hostinger cortaba con 429 por exceso de peticiones), aquí
@@ -30,6 +30,7 @@ const searchItems = [
     dek: a.dek || '',
     aliases: CATEGORY_ALIASES[a.category?.name] || '',
     href: `/articulo/${a.slug}`,
+    image: getAssetUrl(a.featured_image, { width: 300, height: 190 }),
   })),
   ...columns.map((c, i) => ({
     id: `c${i}`,
@@ -90,7 +91,11 @@ const searchItems = [
       .map(
         (item) => `
         <article class="search-result">
-          <a class="thumb" href="${item.href}" aria-label="${item.title}"><svg viewBox="0 0 300 190"><rect width="300" height="190" fill="#101010"/><path d="M0 40 L300 10" stroke="#3a3a3a" stroke-width="1.5"/></svg></a>
+          <a class="thumb" href="${item.href}" aria-label="${item.title}">${
+            item.image
+              ? `<img src="${item.image}" alt="" loading="lazy" />`
+              : `<svg viewBox="0 0 300 190"><rect width="300" height="190" fill="#101010"/><path d="M0 40 L300 10" stroke="#3a3a3a" stroke-width="1.5"/></svg>`
+          }</a>
           <div>
             <span class="eyebrow-cat">${(item.category || 'PADDOCK DAILY').toUpperCase()}</span>
             <h3><a href="${item.href}">${item.title}</a></h3>
@@ -113,7 +118,7 @@ const searchItems = [
     const index = new MiniSearch({
       idField: 'id',
       fields: ['title', 'category', 'dek', 'aliases'],
-      storeFields: ['title', 'category', 'dek', 'href'],
+      storeFields: ['title', 'category', 'dek', 'href', 'image'],
       searchOptions: {
         boost: { title: 3, category: 2, aliases: 2 },
         fuzzy: 0.2,
