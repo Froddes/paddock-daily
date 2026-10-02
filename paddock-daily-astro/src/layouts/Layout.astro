@@ -28,6 +28,24 @@ const pageTitle = title ? `Paddock Daily — ${title}` : 'Paddock Daily — Todo
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
 const ogImage = new URL(image || '/brand/favicon-512.png', Astro.site).toString();
 
+// JSON-LD de la organización/medio — va en todas las páginas (no solo en
+// artículos) porque es lo que le confirma a Google qué es "Paddock Daily"
+// como entidad: nombre, logo y perfiles sociales oficiales (sameAs). Es la
+// base del Knowledge Panel y de que los resultados enriquecidos muestren
+// el logo correcto.
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'NewsMediaOrganization',
+  name: 'Paddock Daily',
+  url: Astro.site ? Astro.site.toString() : 'https://paddock-daily.com/',
+  logo: new URL('/brand/favicon-512.png', Astro.site).toString(),
+  sameAs: [
+    'https://instagram.com/paddockdaily',
+    'https://x.com/PaddockDaily_',
+    'https://www.tiktok.com/@paddockdaily_',
+  ],
+};
+
 const jsonLd = article
   ? {
       '@context': 'https://schema.org',
@@ -79,6 +97,7 @@ const jsonLd = article
   <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={ogImage} />
 
+  <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
   {jsonLd && (
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   )}
