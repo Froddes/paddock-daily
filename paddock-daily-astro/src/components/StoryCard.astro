@@ -15,7 +15,11 @@ const imageUrl = getAssetUrl(article.featured_image, { width: wide ? 900 : 500, 
     )}
   </a>
   <div>
-    <span class="eyebrow-cat">{eyebrow || article.category?.name}</span>
+    {article.category?.slug ? (
+      <a class="eyebrow-cat" href={`/categoria/${article.category.slug}`}>{eyebrow || article.category?.name}</a>
+    ) : (
+      <span class="eyebrow-cat">{eyebrow || article.category?.name}</span>
+    )}
     <h3><a href={`/articulo/${article.slug}`}>{article.title}</a></h3>
     <p>{article.dek}</p>
     <span class="meta">{timeAgo(article.published_date)}</span>
