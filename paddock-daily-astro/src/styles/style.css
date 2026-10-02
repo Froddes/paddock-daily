@@ -441,13 +441,13 @@ footer.footer-simple .footer-legal{ justify-content:center; color:var(--ink-fain
 .share-rail a{ width:34px; height:34px; border:1px solid var(--line); display:grid; place-items:center; }
 .share-rail a:hover{ border-color:var(--accent); }
 
-.article-body{ font-size:1.06rem; line-height:1.75; color:#232323; padding-bottom:20px; }
+.article-body{ font-size:1.06rem; line-height:1.75; color:#232323; padding-bottom:20px; overflow-wrap:anywhere; }
 .article-body p{ margin:0 0 22px; }
 .article-body h2{ font-size:1.3rem; font-weight:800; margin:36px 0 14px; }
 .article-body h3{ font-size:1.05rem; font-weight:700; margin:26px 0 10px; }
 .article-body ul, .article-body ol{ margin:0 0 22px; padding-left:22px; }
 .article-body li{ margin-bottom:8px; }
-.article-body a{ color:var(--accent); text-decoration:underline; }
+.article-body a{ color:var(--accent); text-decoration:underline; overflow-wrap:anywhere; word-break:break-word; }
 .pull-quote{ font-family:'Playfair Display', serif; font-style:italic; font-weight:500; font-size:1.5rem; line-height:1.5; color:var(--ink); border-left:3px solid var(--accent); padding-left:24px; margin:34px 0; }
 .stat-callout{ background:var(--card); border:1px solid var(--line); padding:22px 24px; margin:30px 0; display:flex; align-items:baseline; gap:16px; }
 .stat-callout strong{ font-family:'Poppins'; font-weight:800; font-size:2rem; color:var(--accent); }
@@ -472,7 +472,7 @@ footer.footer-simple .footer-legal{ justify-content:center; color:var(--ink-fain
 .author-card strong{ display:block; font-size:0.95rem; }
 .author-card span{ font-size:0.8rem; color:var(--ink-faint); }
 
-.col-body{ font-family:'Poppins'; font-size:1.15rem; line-height:1.85; color:#E7E7E7; padding:44px 0; }
+.col-body{ font-family:'Poppins'; font-size:1.15rem; line-height:1.85; color:#E7E7E7; padding:44px 0; overflow-wrap:anywhere; }
 .col-body p{ margin:0 0 26px; }
 .col-body .drop::first-letter{ font-family:'Poppins'; font-weight:800; font-size:3.4rem; float:left; line-height:0.8; margin:8px 10px 0 0; color:var(--accent); }
 
