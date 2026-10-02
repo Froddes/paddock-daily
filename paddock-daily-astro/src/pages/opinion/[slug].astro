@@ -1,9 +1,9 @@
 ---
-import { marked } from 'marked';
 import Layout from '../../layouts/Layout.astro';
 import CategoryLogo from '../../components/CategoryLogo.astro';
 import OpinionMark from '../../components/OpinionMark.astro';
 import { getOpinionColumns, getOpinionColumnBySlug, formatDate, getAssetUrl } from '../../lib/directus.js';
+import { renderMarkdown } from '../../lib/markdown.js';
 
 export async function getStaticPaths() {
   const columns = await getOpinionColumns({ limit: -1 });
@@ -14,7 +14,7 @@ export async function getStaticPaths() {
 }
 
 const { column } = Astro.props;
-const bodyHtml = marked.parse(column.body || '');
+const bodyHtml = renderMarkdown(column.body);
 const more = await getOpinionColumns({ excludeSlug: column.slug, limit: 3 });
 const initial = column.author?.name?.charAt(0) || 'P';
 const avatarUrl = getAssetUrl(column.author?.avatar, { width: 70, height: 70 });
