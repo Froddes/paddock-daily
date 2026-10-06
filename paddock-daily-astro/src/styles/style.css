@@ -648,6 +648,10 @@ footer.footer-simple .footer-legal{ justify-content:center; color:var(--ink-fain
   .cat-grid{ grid-template-columns:1fr 1fr; gap:22px 14px; }
   .cat-grid .story-card p{ display:none; }
   .cat-grid .story-card h3{ font-size:0.92rem; }
+  /* "Explorar por categoría" de la home: en móvil ya existen las
+     categorías en el menú y en el rail "Todo el paddock" justo debajo,
+     así que este bloque sobra y solo añade scroll extra. */
+  .home-explore-cats{ display:none; }
 }
 @media (max-width:560px){
   .news-grid{ grid-template-columns:1fr; }
