@@ -59,17 +59,71 @@ const PUBLISHED = { status: { _eq: 'published' } };
 
 // --- Categorías ---
 
+// Campos de imagen editables desde Directus (colección categories):
+//   logo          → logo para fondos oscuros (normalmente el blanco)
+//   logo_onlight  → logo para fondos claros (opcional; si falta se usa `logo`)
+//   banner        → foto de cabecera de la categoría y de la tarjeta de "Todo el paddock"
+// Si un campo está vacío, la web cae a los archivos de public/ (como hasta ahora).
+const CATEGORY_FIELDS = ['id', 'name', 'slug', 'description', 'logo', 'logo_onlight', 'banner'];
+
+// Se pide una sola vez por build y se reutiliza (Header, Footer, logos...).
+let categoriesPromise = null;
 export function getCategories() {
-  return directusFetch('categories', {
-    fields: ['id', 'name', 'slug', 'description'],
-    sort: 'name',
-  });
+  if (!categoriesPromise) {
+    categoriesPromise = directusFetch('categories', { fields: CATEGORY_FIELDS, sort: 'name' });
+  }
+  return categoriesPromise;
+}
+
+const slugKey = (s = '') => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+// Busca una categoría por slug (tolerante a guiones/mayúsculas) en la lista cacheada.
+export async function findCategory(slug) {
+  if (!slug) return null;
+  const all = await getCategories();
+  return all.find((c) => c.slug === slug) || all.find((c) => slugKey(c.slug) === slugKey(slug)) || null;
+}
+
+// URL del archivo original, sin transformaciones (necesario para SVG).
+export function getRawAssetUrl(fileId) {
+  return fileId ? `${BASE_URL}/assets/${fileId}` : null;
+}
+
+// Logos: se descargan en build time y se incrustan en el HTML como data URI.
+// Así no dependen de cabeceras de Directus (CORP/CSP/Content-Type de los SVG)
+// ni de que el navegador del visitante llegue a Directus. Si la descarga
+// falla o el archivo es grande, cae a la URL normal.
+const logoCache = new Map();
+export function getInlineAssetUrl(fileId, maxBytes = 150_000) {
+  if (!fileId) return Promise.resolve(null);
+  if (!logoCache.has(fileId)) {
+    logoCache.set(
+      fileId,
+      (async () => {
+        const url = getRawAssetUrl(fileId);
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return url;
+          const buf = Buffer.from(await res.arrayBuffer());
+          if (buf.length > maxBytes) return url;
+          let type = (res.headers.get('content-type') || '').split(';')[0].trim();
+          const head = buf.subarray(0, 300).toString('utf8').toLowerCase();
+          if (head.includes('<svg') || head.includes('<?xml')) type = 'image/svg+xml';
+          if (!type.startsWith('image/')) return url;
+          return `data:${type};base64,${buf.toString('base64')}`;
+        } catch {
+          return url;
+        }
+      })(),
+    );
+  }
+  return logoCache.get(fileId);
 }
 
 export async function getCategoryBySlug(slug) {
   const items = await directusFetch('categories', {
     filter: { slug: { _eq: slug } },
-    fields: ['id', 'name', 'slug', 'description'],
+    fields: CATEGORY_FIELDS,
     limit: 1,
   });
   return items[0] || null;

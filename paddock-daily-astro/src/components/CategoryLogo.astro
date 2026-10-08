@@ -12,7 +12,10 @@
 // versión con los colores originales — y solo cae al archivo en blanco si
 // esa variante no existe todavía.
 //
-// Cómo añadir un logo: guarda el archivo oficial (a ser posible SVG o PNG
+// Desde Directus: categories.logo (fondo oscuro) y categories.logo_onlight
+// (fondo claro, opcional) tienen prioridad sobre los archivos locales.
+//
+// Cómo añadir un logo en local: guarda el archivo oficial (a ser posible SVG o PNG
 // con fondo transparente) en public/brand/categories/ con el nombre de la
 // categoría en minúsculas y sin espacios/símbolos, p. ej.:
 //   f1.svg · wec.svg · gtworldchallenge.svg (o gtwc.svg) · imsa.svg ·
@@ -21,6 +24,7 @@
 // sufijo -onlight, p. ej. wec-onlight.svg.
 import fs from 'node:fs';
 import path from 'node:path';
+import { findCategory, getInlineAssetUrl } from '../lib/directus.js';
 
 const { slug = '', name = '', size = 20, onLight = false, class: className = '' } = Astro.props;
 
@@ -28,8 +32,13 @@ const key = slug.toLowerCase().replace(/[^a-z0-9]/g, '');
 const dir = path.resolve('public/brand/categories');
 const exts = ['svg', 'png', 'webp'];
 
+// 1) Logo subido en Directus (categories.logo / logo_onlight), si lo hay.
+const cat = await findCategory(slug);
+const remoteUrl = await getInlineAssetUrl(onLight ? (cat?.logo_onlight || cat?.logo) : cat?.logo);
+
+// 2) Si no, archivo local en public/brand/categories/.
 let file = null;
-if (key) {
+if (key && !remoteUrl) {
   const candidates = onLight
     ? [key + '-onlight', key]
     : [key];
@@ -45,10 +54,10 @@ if (key) {
 }
 ---
 
-{file ? (
+{(remoteUrl || file) ? (
   <img
     class={`cat-logo ${className}`}
-    src={`/brand/categories/${file}`}
+    src={remoteUrl || `/brand/categories/${file}`}
     alt={name ? `${name} logo` : ''}
     style={`height:${size}px`}
     loading="lazy"
