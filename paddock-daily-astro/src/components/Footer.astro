@@ -1,8 +1,15 @@
 ---
 import { getCategories } from '../lib/directus.js';
+import { sortCategoriesLikeNav } from '../lib/categoryOrder.js';
+
+// Cuántas categorías se listan en el footer: las primeras según el orden
+// del menú del navbar (F1, WEC, GT World Challenge, IMSA, ...).
+const FOOTER_CATEGORY_COUNT = 4;
 
 const { variant = 'simple' } = Astro.props;
-const categories = variant === 'full' ? (await getCategories()).slice(0, 4) : [];
+const categories = variant === 'full'
+  ? sortCategoriesLikeNav(await getCategories()).slice(0, FOOTER_CATEGORY_COUNT)
+  : [];
 const year = new Date().getFullYear();
 ---
 

@@ -1,26 +1,14 @@
 ---
 import { getCategories } from '../lib/directus.js';
+import { splitCategoriesLikeNav } from '../lib/categoryOrder.js';
 
 const { variant = 'full', currentNav = '' } = Astro.props;
 const categories = variant === 'full' ? await getCategories() : [];
 
-// Orden fijo del menú principal, pedido por el redactor. Se hace matching
-// por nombre (no por slug) para no depender de cómo esté configurado cada
-// slug en Directus. Cualquier categoría que exista pero no esté en esta
-// lista (Indycar, WRC, NASCAR, MotoGP, GT suelto, o categorías nuevas que
-// se creen más adelante) cae automáticamente en el desplegable "Otros".
-const MAIN_CATEGORY_ORDER = ['Fórmula 1', 'WEC', 'GT World Challenge', 'IMSA', 'DTM'];
-const ACCENTS = { á: 'a', é: 'e', í: 'i', ó: 'o', ú: 'u', à: 'a', è: 'e', ì: 'i', ò: 'o', ù: 'u', ñ: 'n' };
-const normalize = (s) => (s || '').toLowerCase().trim().replace(/[áéíóúàèìòùñ]/g, (c) => ACCENTS[c] || c);
-
-const mainCats = variant === 'full'
-  ? MAIN_CATEGORY_ORDER
-      .map((name) => categories.find((c) => normalize(c.name) === normalize(name)))
-      .filter(Boolean)
-  : [];
-const otherCats = variant === 'full'
-  ? categories.filter((c) => !mainCats.some((m) => m.id === c.id))
-  : [];
+// Orden fijo del menú principal (definido en lib/categoryOrder.js, que
+// también usan el rail de la home y el footer). Lo que no esté en la lista
+// principal cae en el desplegable "Otros".
+const { main: mainCats, others: otherCats } = splitCategoriesLikeNav(categories);
 ---
 
 <header>
@@ -55,7 +43,6 @@ const otherCats = variant === 'full'
       <a class="icon-btn" aria-label="Buscar" href="/buscar">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       </a>
-      <a class="btn-subscribe" href="/#newsletter">Suscribirse</a>
       {variant === 'full' && (
         <button class="menu-toggle" aria-label="Abrir menú" data-action="toggle-menu">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
@@ -67,8 +54,8 @@ const otherCats = variant === 'full'
 
 <script>
   // Menú móvil — único comportamiento que sigue necesitando JS del lado
-  // cliente ahora que "Buscar" y "Suscribirse" son enlaces normales
-  // (con Astro no hace falta simular esa navegación con JS).
+  // cliente ahora que "Buscar" es un enlace normal (con Astro no hace
+  // falta simular esa navegación con JS).
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action="toggle-menu"]');
     if (!btn) return;

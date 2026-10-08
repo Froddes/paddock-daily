@@ -72,7 +72,6 @@ src/
 ## Pendiente para producción (fases 4-5 del roadmap)
 
 - Pagefind sustituyendo el filtro de `buscar.astro`.
-- Webhook real de n8n → Brevo en el formulario de newsletter de Home.
 - Fotografía editorial sustituyendo `ThumbPlaceholder`.
 - Disparar `npm run build` automáticamente desde el flow de Directus al
   publicar (rebuild en el hosting).
