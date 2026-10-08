@@ -140,7 +140,7 @@ const opinionAvatarUrl = opinion ? getAssetUrl(opinion.author?.avatar, { width: 
       <div class="cat-rail" data-cat-rail>
         {categories.map((cat) => (
           <a class="cat-tile" href={`/categoria/${cat.slug}`}>
-            <img class="cat-tile-img" src={getCategoryCoverUrl(cat.slug)} alt="" aria-hidden="true" />
+            <img class="cat-tile-img" src={getCategoryCoverUrl(cat.slug, cat.banner, 700)} alt="" aria-hidden="true" />
             <div class="cat-tile-top">
               <CategoryLogo slug={cat.slug} name={cat.name} size={15} />
               <span>{cat.name}</span>

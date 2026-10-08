@@ -3,10 +3,12 @@
 // disciplina, con un motivo genérico de reserva para categorías nuevas
 // que todavía no tengan imagen propia en public/covers/.
 import { getCategoryCoverUrl } from '../lib/categoryImages.js';
+import { findCategory } from '../lib/directus.js';
 
 const { slug = '', name = '' } = Astro.props;
+const cat = await findCategory(slug);
 ---
 
 <div class="category-cover">
-  <img src={getCategoryCoverUrl(slug)} alt="" aria-hidden="true" />
+  <img src={getCategoryCoverUrl(slug, cat?.banner)} alt="" aria-hidden="true" />
 </div>
