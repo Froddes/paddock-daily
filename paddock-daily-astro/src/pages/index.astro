@@ -12,20 +12,29 @@ import {
   getAssetUrl,
 } from '../lib/directus.js';
 import { getCategoryCoverUrl } from '../lib/categoryImages.js';
+import { sortCategoriesLikeNav } from '../lib/categoryOrder.js';
 
-const latest = await getArticles({ limit: 8 });
+// Cuántos artículos lleva cada bloque de la portada (además del destacado).
+const PORTADA_COUNT = 6;
+const ULTIMA_HORA_COUNT = 4;
+
+const latest = await getArticles({ limit: 1 + PORTADA_COUNT + ULTIMA_HORA_COUNT });
 const hero = latest.find((a) => a.featured) || latest[0];
 const heroImageUrl = hero ? getAssetUrl(hero.featured_image, { width: 1400, height: 900 }) : null;
+const heroAvatarUrl = hero ? getAssetUrl(hero.author?.avatar, { width: 60, height: 60 }) : null;
 const rest = latest.filter((a) => a.slug !== hero?.slug);
-const portada = rest.slice(0, 3);
-const ultimaHora = rest.slice(3, 7);
+const portada = rest.slice(0, PORTADA_COUNT);
+const ultimaHora = rest.slice(PORTADA_COUNT, PORTADA_COUNT + ULTIMA_HORA_COUNT);
 
-const [categories, counts, opinionLatest] = await Promise.all([
+const [allCategories, counts, opinionLatest] = await Promise.all([
   getCategories(),
   getArticleCountsByCategory(),
   getOpinionColumns({ limit: 1 }),
 ]);
+// Mismo orden que el menú del navbar (principales primero, luego "Otros").
+const categories = sortCategoriesLikeNav(allCategories);
 const opinion = opinionLatest[0];
+const opinionAvatarUrl = opinion ? getAssetUrl(opinion.author?.avatar, { width: 80, height: 80 }) : null;
 ---
 
 <Layout title="Inicio" headerVariant="full" footerVariant="full" currentNav="inicio">
@@ -33,12 +42,22 @@ const opinion = opinionLatest[0];
     <section class="hero-section">
       <div class="wrap hero-grid">
         <div class="hero-copy">
-          <span class="eyebrow-cat">{hero.category?.name?.toUpperCase()}</span>
+          <div class="cat-hero-top">
+            {hero.category && (
+              <CategoryLogo slug={hero.category.slug} name={hero.category.name} size={26} onLight />
+            )}
+            <span class="eyebrow-cat">{hero.category?.name?.toUpperCase()}</span>
+          </div>
           <h1><a href={`/articulo/${hero.slug}`}>{hero.title}</a></h1>
           <p class="hero-dek">{hero.dek}</p>
-          <div class="hero-meta-row">
-            <span class="meta">{hero.author?.name}</span>
-            <span class="meta">· {timeAgo(hero.published_date)}</span>
+          <div class="byline">
+            <span class="avatar">
+              {heroAvatarUrl ? <img src={heroAvatarUrl} alt={hero.author?.name} /> : (hero.author?.name?.charAt(0) || 'P')}
+            </span>
+            <div>
+              <strong>{hero.author?.name}</strong>
+              <span>{timeAgo(hero.published_date)} · {hero.reading_time || 1} min de lectura</span>
+            </div>
           </div>
         </div>
         <a class="hero-visual" href={`/articulo/${hero.slug}`} aria-label={hero.title}>
@@ -140,7 +159,9 @@ const opinion = opinionLatest[0];
           <span class="eyebrow-cat">OPINIÓN</span>
           <p class="opinion-quote">"{opinion.dek}"</p>
           <div class="opinion-byline">
-            <span class="avatar">{opinion.author?.name?.charAt(0)}</span>
+            <span class="avatar">
+              {opinionAvatarUrl ? <img src={opinionAvatarUrl} alt={opinion.author?.name} /> : (opinion.author?.name?.charAt(0) || 'P')}
+            </span>
             <div><strong>{opinion.author?.name}</strong><span>{opinion.author?.role}</span></div>
           </div>
         </div>
@@ -148,23 +169,6 @@ const opinion = opinionLatest[0];
     </section>
   )}
 
-  <section class="news-signup" id="newsletter">
-    <div class="wrap">
-      <div class="signup-box">
-        <div>
-          <h2>Todo el paddock, cada mañana en tu correo</h2>
-          <p>Un resumen diario con lo esencial de cada categoría. Sin relleno, sin comunicados repetidos.</p>
-        </div>
-        <form class="signup-form" data-newsletter-form>
-          <input type="email" placeholder="tu@email.com" required aria-label="Correo electrónico" data-newsletter-input />
-          <button type="submit" data-newsletter-submit>Suscribirme
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          </button>
-        </form>
-        <p class="signup-msg" data-newsletter-msg role="status" aria-live="polite"></p>
-      </div>
-    </div>
-  </section>
 </Layout>
 
 <script>
@@ -178,9 +182,14 @@ const opinion = opinionLatest[0];
     if (!prevBtn || !nextBtn) return;
 
     const scrollByTile = (dir) => {
+      // Avanza una "página" entera: tantas categorías como caben a la vista
+      // (6 en escritorio). El scroll nativo se detiene en el final, así que
+      // si quedan menos de 6 se muestran las restantes + las anteriores
+      // necesarias para completar la fila.
       const tile = rail.querySelector('.cat-tile');
-      const step = tile ? tile.getBoundingClientRect().width + 16 : rail.clientWidth * 0.8;
-      rail.scrollBy({ left: dir * step * 2, behavior: 'smooth' });
+      const tileStep = tile ? tile.getBoundingClientRect().width + 16 : rail.clientWidth;
+      const visible = Math.max(1, Math.round((rail.clientWidth + 16) / tileStep));
+      rail.scrollBy({ left: dir * tileStep * visible, behavior: 'smooth' });
     };
 
     const updateArrows = () => {
@@ -194,43 +203,5 @@ const opinion = opinionLatest[0];
     rail.addEventListener('scroll', updateArrows, { passive: true });
     window.addEventListener('resize', updateArrows);
     updateArrows();
-  });
-
-  const NEWSLETTER_WEBHOOK = 'https://n8n.froddes.com/webhook/paddock-daily-newsletter';
-
-  document.addEventListener('submit', async (e) => {
-    const form = e.target;
-    if (!form.matches('[data-newsletter-form]')) return;
-    e.preventDefault();
-
-    const input = form.querySelector('[data-newsletter-input]');
-    const button = form.querySelector('[data-newsletter-submit]');
-    const msg = form.parentElement.querySelector('[data-newsletter-msg]');
-    const email = input.value.trim();
-    if (!email) return;
-
-    button.disabled = true;
-    input.disabled = true;
-    msg.textContent = 'Enviando…';
-    msg.className = 'signup-msg';
-
-    try {
-      const res = await fetch(NEWSLETTER_WEBHOOK, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      msg.textContent = '¡Listo! Revisa tu correo para confirmar la suscripción.';
-      msg.className = 'signup-msg signup-msg-ok';
-      form.reset();
-    } catch (err) {
-      msg.textContent = 'No hemos podido completar la suscripción. Inténtalo de nuevo en unos minutos.';
-      msg.className = 'signup-msg signup-msg-error';
-    } finally {
-      button.disabled = false;
-      input.disabled = false;
-    }
   });
 </script>
