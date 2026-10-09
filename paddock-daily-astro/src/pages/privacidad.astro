@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { ADS_ENABLED } from '../lib/ads.js';
 
 const lastUpdated = '8 de octubre de 2026';
 ---
@@ -41,6 +42,15 @@ const lastUpdated = '8 de octubre de 2026';
           navegador, páginas visitadas) a través de cookies — ver el
           detalle en la <a href="/cookies">Política de Cookies</a>.
         </li>
+        {ADS_ENABLED && (
+          <li>
+            <strong>Datos para publicidad:</strong> si lo consientes, Google
+            y sus socios pueden tratar identificadores de dispositivo
+            (cookies, identificadores de publicidad), tu dirección IP y datos
+            de navegación para mostrar y medir anuncios, incluida la
+            personalización.
+          </li>
+        )}
       </ul>
       <p>
         Paddock Daily no solicita ni recaba datos especialmente protegidos
@@ -70,7 +80,20 @@ const lastUpdated = '8 de octubre de 2026';
           en infraestructura propia del titular.
         </li>
       </ul>
-      <p>No se ceden datos a terceros salvo obligación legal.</p>
+      {ADS_ENABLED && (
+        <p>
+          <strong>Publicidad:</strong> este sitio utiliza Google AdSense
+          (Google Ireland Limited, para usuarios del EEE y Reino Unido). Los
+          datos para publicidad se tratan solo si das tu consentimiento, que
+          puedes retirar en cualquier momento desde el aviso de cookies del
+          sitio. Google trata esos datos como responsable independiente
+          conforme a su
+          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">política de privacidad</a>,
+          y puede transferirlos fuera del EEE con las garantías previstas
+          en la normativa.
+        </p>
+      )}
+      <p>No se ceden datos a terceros salvo obligación legal{ADS_ENABLED ? ' y lo indicado respecto a la publicidad' : ''}.</p>
 
       <h2>5. Tus derechos</h2>
       <p>

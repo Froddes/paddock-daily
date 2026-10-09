@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { ADS_ENABLED } from '../lib/ads.js';
 
 const lastUpdated = '28 de septiembre de 2026';
 ---
@@ -37,17 +38,33 @@ const lastUpdated = '28 de septiembre de 2026';
           cerrado el aviso de cookies). No requieren consentimiento por ser
           estrictamente necesarias.
         </li>
-        <li>
-          <strong>Cookies de publicidad (terceros):</strong> Paddock Daily
-          contempla la posibilidad de mostrar publicidad a través de redes
-          como Google AdSense. Estas cookies, cuando estén activas, permiten
-          mostrar anuncios y medir su rendimiento, y pueden ser instaladas
-          por Google y sus socios publicitarios conforme a su propia
-          política de privacidad y cookies (más información en
-          <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">policies.google.com/technologies/ads</a>).
-          Este tipo de cookies solo se instalará previo consentimiento
-          expreso del usuario.
-        </li>
+        {!ADS_ENABLED && (
+          <li>
+            <strong>Cookies de publicidad (terceros):</strong> Paddock Daily
+            contempla la posibilidad de mostrar publicidad a través de redes
+            como Google AdSense. Estas cookies, cuando estén activas, solo se
+            instalarán previo consentimiento expreso del usuario.
+          </li>
+        )}
+        {ADS_ENABLED && (
+          <li>
+            <strong>Cookies de publicidad (terceros):</strong> este sitio
+            muestra publicidad a través de Google AdSense. Google y sus
+            socios publicitarios pueden instalar cookies o usar
+            identificadores similares en tu dispositivo para mostrar
+            anuncios, limitar su repetición, medir su rendimiento y, si lo
+            aceptas, personalizarlos según tus intereses. En el Espacio
+            Económico Europeo y el Reino Unido solo se usan con tu
+            consentimiento previo, que puedes dar, rechazar o modificar en
+            cualquier momento desde el aviso de cookies del sitio (enlace
+            «Privacidad y cookies» o equivalente en el pie de página). Si no
+            consientes, Google puede mostrar anuncios no personalizados, que
+            no usan cookies para perfilarte. Más información en
+            <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">policies.google.com/technologies/ads</a>
+            y en
+            <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">cómo usa Google los datos de sitios que usan sus servicios</a>.
+          </li>
+        )}
       </ul>
       <p>
         Esta política se actualizará en cuanto se activen herramientas de
