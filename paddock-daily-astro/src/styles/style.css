@@ -709,3 +709,64 @@ footer.footer-simple .footer-legal{ justify-content:center; color:var(--ink-fain
   .cookie-consent-actions{ justify-content:stretch; flex-direction:column; }
   .cookie-consent-actions .cookie-btn{ flex:1; text-align:center; }
 }
+
+/* ── Anuncios ──────────────────────────────────────────────────────────
+   Los huecos solo existen en el HTML cuando los anuncios están activados
+   (ver src/lib/ads.js). Altura mínima reservada para evitar saltos de
+   layout; etiqueta "Publicidad" visible, como exigen las políticas. */
+.ad-slot{ margin:28px 0; text-align:center; overflow:hidden; }
+.ad-slot-label{ display:block; font-size:.66rem; letter-spacing:.12em; text-transform:uppercase; color:#8a8a8a; margin-bottom:6px; }
+/* Vista previa de desarrollo (solo `npm run dev`): caja de color en lugar del anuncio. */
+.ad-slot--preview .ad-slot-preview-box{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  min-height:inherit; padding:24px 16px; border:2px dashed #ff5a1f; border-radius:10px;
+  background:repeating-linear-gradient(45deg, rgba(255,90,31,.10) 0 14px, rgba(255,90,31,.04) 14px 28px);
+  color:#b23c0e; font-size:.9rem;
+}
+.ad-slot--preview .ad-slot-preview-box strong{ font-size:1.05rem; }
+/* Laterales con anuncio fijo (sticky): la columna se estira a toda la altura
+   de la sección para que el anuncio acompañe al hacer scroll. Sin anuncio no
+   cambia nada (las tarjetas siguen apiladas arriba). */
+.cat-layout > aside, .latest-side{ align-self:stretch; }
+.ad-slot--sticky{ position:sticky; top:92px; }
+/* Promo de resultados en vivo (F1 y NASCAR) bajo "Última hora" en la portada.
+   Tarjeta clara con cabecera oscura (a propósito distinta de las tarjetas
+   fotográficas de "Todo el paddock"). La cabecera oscura permite usar el logo
+   blanco de cada categoría. */
+.results-promo{ margin-top:48px; }
+.results-promo-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:stretch; }
+.results-promo-card{
+  display:flex; flex-direction:column; background:var(--card); border:1px solid var(--line);
+  transition:transform .25s ease, box-shadow .25s ease; overflow:hidden;
+}
+.results-promo-card:hover{ transform:translateY(-4px); box-shadow:0 14px 26px rgba(0,0,0,0.14); }
+.rp-top{
+  position:relative; display:flex; align-items:center; justify-content:space-between; gap:12px;
+  min-height:64px; padding:14px 18px; background:var(--ink); color:var(--dark-ink); overflow:hidden;
+}
+.rp-top::after{
+  content:''; position:absolute; top:0; right:0; width:96px; height:100%; opacity:.16;
+  background:repeating-conic-gradient(#fff 0 25%, transparent 0 50%) 0 0 / 16px 16px;
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000); mask-image:linear-gradient(90deg, transparent, #000);
+}
+.rp-top .cat-logo, .rp-top .checker-accent{ position:relative; z-index:1; }
+.rp-live{
+  position:relative; z-index:1; display:inline-flex; align-items:center; gap:6px;
+  font-family:'Poppins'; font-weight:700; font-size:.64rem; letter-spacing:.06em; text-transform:uppercase;
+  color:#fff; background:rgba(255,255,255,.12); padding:5px 10px; border-radius:999px; white-space:nowrap;
+}
+.rp-live::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); animation:racecenter-pulse 1.4s infinite; }
+.rp-body{ padding:20px 18px 8px; flex:1; }
+.rp-body h3{ font-family:'Poppins'; font-size:1.25rem; font-weight:800; line-height:1.15; margin:0 0 6px; }
+.rp-body p{ font-size:.88rem; line-height:1.45; color:var(--ink-soft); margin:0 0 14px; }
+.rp-chips{ display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; }
+.rp-chips li{ list-style:none; font-size:.72rem; font-weight:600; color:var(--ink-soft); border:1px solid var(--line); padding:4px 9px; }
+.rp-cta{
+  display:flex; align-items:center; justify-content:space-between; margin-top:12px; padding:14px 18px;
+  border-top:1px solid var(--line); font-family:'Poppins'; font-weight:700; font-size:.82rem; color:var(--ink);
+  transition:background .2s ease, color .2s ease;
+}
+.rp-arrow{ font-size:1.05rem; transition:transform .2s ease; }
+.results-promo-card:hover .rp-cta{ background:var(--accent); color:#fff; }
+.results-promo-card:hover .rp-arrow{ transform:translateX(4px); }
+@media (max-width:640px){ .results-promo-grid{ grid-template-columns:1fr; } }

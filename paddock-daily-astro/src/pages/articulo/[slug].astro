@@ -5,6 +5,8 @@ import ThumbPlaceholder from '../../components/ThumbPlaceholder.astro';
 import CategoryLogo from '../../components/CategoryLogo.astro';
 import { getArticles, getArticleBySlug, formatDate, timeAgo, getAssetUrl } from '../../lib/directus.js';
 import { renderMarkdown } from '../../lib/markdown.js';
+import AdSlot from '../../components/AdSlot.astro';
+import { AD_SLOTS, splitArticleHtml } from '../../lib/ads.js';
 
 export async function getStaticPaths() {
   const articles = await getArticles({ limit: -1 });
@@ -16,6 +18,8 @@ export async function getStaticPaths() {
 
 const { article } = Astro.props;
 const bodyHtml = renderMarkdown(article.body);
+// Anuncio entre párrafos: tras el 3.º (solo si el texto es lo bastante largo).
+const [bodyTop, bodyBottom] = splitArticleHtml(bodyHtml, 3);
 const coverImageUrl = getAssetUrl(article.featured_image, { width: 1400, height: 700 });
 const authorAvatarUrl = getAssetUrl(article.author?.avatar, { width: 60, height: 60 });
 const related = article.category
@@ -70,7 +74,13 @@ const related = article.category
       )}
     </div>
 
-    <article class="article-body" set:html={bodyHtml} />
+    <article class="article-body">
+      <Fragment set:html={bodyTop} />
+      {bodyBottom && <AdSlot slot={AD_SLOTS.articleMid} name="En el artículo (tras el 3.er párrafo)" />}
+      <Fragment set:html={bodyBottom} />
+    </article>
+
+    <AdSlot slot={AD_SLOTS.articleEnd} minHeight={250} name="Final del artículo" />
 
     <div class="tag-row">
       {article.category && <a href={`/categoria/${article.category.slug}`}>{article.category.name}</a>}

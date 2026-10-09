@@ -3,6 +3,8 @@ import Layout from '../layouts/Layout.astro';
 import StoryCard from '../components/StoryCard.astro';
 import ThumbPlaceholder from '../components/ThumbPlaceholder.astro';
 import CategoryLogo from '../components/CategoryLogo.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { AD_SLOTS } from '../lib/ads.js';
 import {
   getArticles,
   getCategories,
@@ -34,6 +36,16 @@ const [allCategories, counts, opinionLatest] = await Promise.all([
 // Mismo orden que el menú del navbar (principales primero, luego "Otros").
 const categories = sortCategoriesLikeNav(allCategories);
 const opinion = opinionLatest[0];
+
+// Categorías con sección de resultados en vivo (páginas /categoria/<slug>/resultados).
+const RESULTS_PAGES = [
+  { slug: 'f1', title: 'Fórmula 1', text: 'Todo el campeonato al día, sin salir de Paddock Daily.', chips: ['Última carrera', 'Clasificación', 'Pilotos', 'Constructores', 'Calendario'], cta: 'Ver resultados de F1' },
+  { slug: 'nascar', title: 'NASCAR', text: 'Cómo va la Cup Series, carrera a carrera.', chips: ['Clasificación de pilotos'], cta: 'Ver clasificación' },
+];
+const resultsPromo = RESULTS_PAGES.map((r) => {
+  const cat = allCategories.find((c) => c.slug === r.slug);
+  return cat ? { ...r, name: cat.name, banner: cat.banner } : null;
+}).filter(Boolean);
 const opinionAvatarUrl = opinion ? getAssetUrl(opinion.author?.avatar, { width: 80, height: 80 }) : null;
 ---
 
@@ -84,6 +96,10 @@ const opinionAvatarUrl = opinion ? getAssetUrl(opinion.author?.avatar, { width: 
     </section>
   )}
 
+  <div class="wrap">
+    <AdSlot slot={AD_SLOTS.homeMid} minHeight={120} name="Banner de portada (entre Portada y Última hora)" />
+  </div>
+
   {ultimaHora.length > 0 && (
     <section class="latest-section">
       <div class="wrap latest-layout">
@@ -112,14 +128,44 @@ const opinionAvatarUrl = opinion ? getAssetUrl(opinion.author?.avatar, { width: 
               );
             })}
           </ul>
+
+          {/* Promo de las secciones de resultados en vivo (F1 y NASCAR). */}
+          {resultsPromo.length > 0 && (
+            <div class="results-promo">
+              <div class="section-head">
+                <h2>Resultados y clasificaciones</h2>
+              </div>
+              <div class="results-promo-grid">
+                {resultsPromo.map((item) => (
+                  <a class="results-promo-card" href={`/categoria/${item.slug}/resultados`}>
+                    <div class="rp-top">
+                      <CategoryLogo slug={item.slug} name={item.name} size={24} />
+                      <span class="rp-live">Datos en vivo</span>
+                    </div>
+                    <div class="rp-body">
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                      <ul class="rp-chips">
+                        {item.chips.map((chip) => <li>{chip}</li>)}
+                      </ul>
+                    </div>
+                    <span class="rp-cta">{item.cta}<span class="rp-arrow" aria-hidden="true">→</span></span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        <aside class="rail-card home-explore-cats">
-          <h4>Explorar por categoría</h4>
-          <div class="rail-tags">
-            {categories.map((cat) => <a href={`/categoria/${cat.slug}`}>{cat.name}</a>)}
-          </div>
-        </aside>
+        <div class="latest-side">
+          <aside class="rail-card home-explore-cats">
+            <h4>Explorar por categoría</h4>
+            <div class="rail-tags">
+              {categories.map((cat) => <a href={`/categoria/${cat.slug}`}>{cat.name}</a>)}
+            </div>
+          </aside>
+          <AdSlot slot={AD_SLOTS.sidebar} sticky minHeight={600} name="Lateral de portada" />
+        </div>
       </div>
     </section>
   )}
