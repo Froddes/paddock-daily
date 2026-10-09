@@ -9,6 +9,8 @@ import OpinionCard from './OpinionCard.astro';
 import CategoryCover from './CategoryCover.astro';
 import CategoryLogo from './CategoryLogo.astro';
 import RaceCenterCard from './RaceCenterCard.astro';
+import AdSlot from './AdSlot.astro';
+import { AD_SLOTS } from '../lib/ads.js';
 
 const {
   category,
@@ -123,6 +125,7 @@ const pageItems = totalPages > 1 ? getPageItems(currentPage, totalPages) : [];
           {otherCategories.map((cat) => <a href={`/categoria/${cat.slug}`}>{cat.name}</a>)}
         </div>
       </div>
+      <AdSlot slot={AD_SLOTS.sidebar} sticky minHeight={600} name="Lateral de categoría" />
     </aside>
   </div>
 </section>

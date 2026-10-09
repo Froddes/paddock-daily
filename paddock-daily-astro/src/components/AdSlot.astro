@@ -1,0 +1,38 @@
+---
+// Hueco de anuncio. No pinta NADA mientras los anuncios no estén activados
+// (ver src/lib/ads.js), así que se puede dejar colocado en las páginas sin
+// efecto visual. Al activarse, reserva altura mínima para que la página no
+// "salte" cuando carga el anuncio (CLS) y se etiqueta como publicidad.
+import { ADS_ENABLED, ADS_PREVIEW, ADSENSE_CLIENT } from '../lib/ads.js';
+
+const { slot = '', minHeight = 280, name = 'anuncio', sticky = false } = Astro.props;
+const cls = `ad-slot${sticky ? ' ad-slot--sticky' : ''}`;
+const show = ADS_ENABLED && Boolean(slot);
+// Solo en desarrollo: caja de color que marca dónde irá el anuncio.
+const preview = ADS_PREVIEW && !show;
+---
+
+{show && (
+  <aside class={cls} aria-label="Publicidad" style={`min-height:${minHeight}px`}>
+    <span class="ad-slot-label">Publicidad</span>
+    <ins
+      class="adsbygoogle"
+      style="display:block;text-align:center"
+      data-ad-client={ADSENSE_CLIENT}
+      data-ad-slot={slot}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    ></ins>
+    <script is:inline>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </aside>
+)}
+
+{preview && (
+  <aside class={`${cls} ad-slot--preview`} aria-hidden="true" style={`min-height:${minHeight}px`}>
+    <span class="ad-slot-label">Publicidad</span>
+    <div class="ad-slot-preview-box">
+      <strong>Hueco de anuncio</strong>
+      <span>{name} · vista previa de desarrollo (no aparece en producción)</span>
+    </div>
+  </aside>
+)}
