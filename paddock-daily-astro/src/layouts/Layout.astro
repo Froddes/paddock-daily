@@ -2,6 +2,7 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CookieConsent from '../components/CookieConsent.astro';
+import { ADSENSE_CLIENT, ADS_ENABLED } from '../lib/ads.js';
 import '../styles/style.css';
 
 const {
@@ -100,6 +101,15 @@ const jsonLd = article
   {/* Analítica (Umami, autoalojado) — solo se carga si las variables están
       configuradas en el .env, así que no hace falta nada más para
       desarrollar en local sin Umami levantado. */}
+  {ADSENSE_CLIENT && <meta name="google-adsense-account" content={ADSENSE_CLIENT} />}
+  {ADS_ENABLED && (
+    <script
+      is:inline
+      async
+      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+      crossorigin="anonymous"
+    ></script>
+  )}
   {import.meta.env.PUBLIC_UMAMI_URL && import.meta.env.PUBLIC_UMAMI_WEBSITE_ID && (
     <script
       defer
