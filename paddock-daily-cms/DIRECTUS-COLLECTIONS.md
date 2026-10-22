@@ -203,34 +203,3 @@ vs `$trigger.keys` (array, solo en `update`) — ver gotchas al final.
 5. **Un Run Script empieza con `module.exports = async function (data) { ... }`** — un `return` suelto sin la función alrededor da `SyntaxError: Illegal return statement`.
 6. **Los campos DateTime sin zona horaria no se convierten al mostrarlos.** Si generas la fecha con `new Date().toISOString()` (UTC) y Madrid está en UTC+1/+2, verás la hora desfasada. Genera directamente la hora de Madrid en el script (ver 1a/1b) en vez de UTC.
 7. En el formulario de una operación **Read Data**, si no aparece un campo "Fields" separado, se especifica dentro del propio **Query** como clave `"fields"` (junto a `"filter"` si hace falta).
-
-## Pendiente / próximos pasos
-
-- [x] Relaciones M2O de `category`/`author` en `opinion_columns` recreadas correctamente (ya no son M2M).
-- [ ] `npm run seed` para repoblar contenido de ejemplo.
-- [ ] Sustituir la URL placeholder del flow 3 (Aviso a n8n) cuando se conecte n8n de verdad, y activar el flow.
-- [ ] Revisar si `opinion_columns` necesita también sus propios flows de auto-fecha (actualmente `published_date` ahí es manual).
-
-> El widget "RaceCenter" (aside de categoría + `/categoria/<cat>/resultados`)
-> **no usa Directus para nada** — todo sale en vivo de APIs públicas desde el
-> navegador del visitante. Disponible en F1 y NASCAR:
-> - **F1** — `src/lib/f1-api.js`, vía Jolpica-F1 (sucesora de Ergast). API
->   estable y mantenida pensada para esto. Alcance completo: sesiones,
->   pestañas Pilotos/Constructores, resultados de la última carrera,
->   clasificación y calendario.
-> - **NASCAR** — `src/lib/nascar-api.js`, vía la API pública (no oficial)
->   de ESPN. Sin key, pero puede cambiar sin aviso al no ser un contrato
->   estable. Alcance mínimo: próxima carrera y clasificación de pilotos
->   únicamente.
->
-> **MotoGP se descartó**: se probó con el backend interno (no oficial) de
-> motogp.com, pero esa API bloquea activamente (403) las peticiones hechas
-> desde fuera de su propio dominio — no es un problema de CORS ausente,
-> las rechazan a propósito — así que no es viable llamarla desde el
-> navegador del visitante.
->
-> Si la API de NASCAR deja de funcionar en algún momento (al no ser un
-> contrato estable), se quita ese widget sin más — ya se ha asumido ese
-> riesgo a propósito. F1 no debería verse afectado, es una API distinta y
-> más sólida. No hay ninguna colección que mantener en Directus para nada
-> de esto.
