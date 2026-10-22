@@ -50,33 +50,3 @@ src/
                                     (TODO fase 4: sustituir por Pagefind)
   styles/style.css              → el mismo CSS de la fase de maquetación, sin tocar
 ```
-
-## Qué cambió respecto a la maqueta HTML/CSS/JS
-
-- `assets/js/include.js` (fetch de partials) **desaparece** — Header/Footer
-  son componentes Astro normales.
-- Los `<article>` de ejemplo y el dataset hardcodeado de `search.js`
-  **desaparecen** — todo sale de Directus vía `src/lib/directus.js`.
-- El body de artículos/columnas es Markdown en Directus; se convierte a
-  HTML en build time con `marked` (ver `articulo/[slug].astro` y
-  `opinion/[slug].astro`).
-- Las cifras de "artículos por categoría" en Home ya no están hardcodeadas
-  — vienen de una consulta de agregación real a Directus
-  (`getArticleCountsByCategory`).
-- El equipo editorial de "Sobre nosotros" sale de la colección `authors`,
-  no está escrito a mano.
-- El buscador sigue siendo un filtro en cliente (como en la fase 1), pero
-  ahora filtra sobre el contenido real embebido en build time, no sobre
-  el dataset de 11 artículos de ejemplo.
-
-## Pendiente para producción (fases 4-5 del roadmap)
-
-- Pagefind sustituyendo el filtro de `buscar.astro`.
-- Fotografía editorial sustituyendo `ThumbPlaceholder`.
-- Disparar `npm run build` automáticamente desde el flow de Directus al
-  publicar (rebuild en el hosting).
-- `sitemap.xml`, `robots.txt`, JSON-LD `Article` (Astro los genera con
-  integraciones estándar — `@astrojs/sitemap`, por ejemplo).
-- Huecos de anuncios (header, sidebar, in-article) preparados en el layout
-  para conectar AdSense/Ezoic cuando haya tráfico suficiente — no tiene
-  sentido montarlo sin visitas todavía.
